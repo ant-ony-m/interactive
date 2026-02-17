@@ -1,0 +1,77 @@
+/* Script Position*/
+.severance {
+  left: 5%;
+  --scale: .8;
+  --tilt: -3deg;
+  --bend-x: 30deg;
+  --bend-y: -10deg;
+  animation-duration: 10s;
+  animation-delay: -6s;
+}
+
+/* Script Hover*/
+.space:has(.severance:hover),
+.space:has(.severance:target) {
+  background: #163f38;
+  
+  /*radial-gradient(circle at center, #163f38, #7da17e,#d6e0e2);*/
+}
+
+
+/*MOODBOARD*/
+
+.severance-moodboard {
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate Severance board */
+.space:has(.severance:target) .severance-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.severance-moodboard .img1 { position: absolute; height: 100vh; opacity: 0.9; top: 0; left: 0; }
+.severance-moodboard .img2 { position: absolute; bottom: 0; right: 0; height: 30vh; }
+.severance-moodboard .img3 { position: absolute; top: 0; right: 0; height: 20vw; }
+.severance-moodboard .img4 { position: absolute; bottom: 25%; left: 5%; height: 50vh; }
+.severance-moodboard .img5 { position: absolute; bottom: 0; left: 25%; height: 50vh; }
+.severance-moodboard .img6 { position: absolute; bottom: 50%; right: 50%; height: 50vh; }
+
+
+/* Escape word base */
+.severance-moodboard .escape-word {
+  position: absolute;
+  font-size: 5vw;
+  color: #163f38;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.severance-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#7da17e;
+  transform: scale(1.05);
+}
+
+
+.severance-moodboard .reality {
+  position: absolute;    
+  top: 20%;
+  left: 8%;
+}
+
+.severance-moodboard .home {
+  position: absolute;    
+  bottom: 15%;
+  right: 12%;
+}

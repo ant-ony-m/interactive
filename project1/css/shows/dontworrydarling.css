@@ -1,0 +1,75 @@
+.dontworrydarling{
+  left: 20%;
+  --scale: 0.9;
+  --tilt: -20deg;
+  --bend-x: -7deg;
+  --bend-y: 50deg;
+  animation-duration: 15s;
+  animation-delay: -20s;
+}
+
+/*hover background*/
+.space:has(.dontworrydarling:hover),
+.space:has(.dontworrydarling:target) {
+  background: rgb(169 153 125)
+  
+  /*radial-gradient(circle at center, #dfcc6f, #843d24);*/
+}
+
+/*MOODBOARD*/
+
+.dontworrydarling-moodboard {
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate DONT WORRY DARLING board */
+.space:has(.dontworrydarling:target) .dontworrydarling-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.dontworrydarling-moodboard .img1 { position: absolute; height: 100vh; opacity: 0.9; top: 0; left: 0; }
+.dontworrydarling-moodboard .img2 { position: absolute; bottom: 0; right: 0; height: 30vh; }
+.dontworrydarling-moodboard .img3 { position: absolute; top: 0; right: 0; height: 20vw; }
+.dontworrydarling-moodboard .img4 { position: absolute; bottom: 25%; left: 5%; height: 50vh; }
+.dontworrydarling-moodboard .img5 { position: absolute; bottom: 0; left: 25%; height: 50vh; }
+.dontworrydarling-moodboard .img6 { position: absolute; bottom: 50%; right: 50%; height: 50vh; }
+
+
+/* Escape word base */
+.dontworrydarling-moodboard .escape-word {
+  position: absolute;
+  font-size: 5vw;
+  color: #163f38;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.dontworrydarling-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#7da17e;
+  transform: scale(1.05);
+}
+
+
+.dontworrydarling-moodboard .reality {
+  position: absolute;    
+  top: 20%;
+  left: 8%;
+}
+
+.dontworrydarling-moodboard .home {
+  position: absolute;    
+  bottom: 15%;
+  right: 12%;
+}

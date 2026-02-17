@@ -1,0 +1,33 @@
+/*FALLING ANIMATION*/
+@keyframes fall {
+  0% {
+    transform:
+      translateY(-20vh)
+      rotate(var(--tilt))
+      rotateX(var(--bend-x))
+      rotateY(var(--bend-y));
+    opacity: 0;
+  }
+  10% { opacity: 1; }
+  100% {
+    transform:
+      translateY(120vh)
+      rotate(calc(var(--tilt) - 14deg))
+      rotateX(calc(var(--bend-x) - 30deg))
+      rotateY(calc(var(--bend-y) + 17deg));
+    opacity: 0;
+  }
+}
+
+/*ANIMATION PAUSE FOR HOVER*/
+.space:has(.script:target) .script:not(:target) {
+  opacity: 0;
+  pointer-events: none;
+  animation: none;
+}
+
+
+.space:has(.script:hover):not(:has(.script:target)) .script {
+  animation-play-state: paused;
+}
+

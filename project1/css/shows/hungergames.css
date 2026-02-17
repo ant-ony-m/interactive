@@ -1,0 +1,73 @@
+.hungergames {
+  left: 70%;
+  --scale: 0.55;
+  --tilt: 14deg;
+  --bend-x: -50deg;
+  --bend-y: 10deg;
+  animation-duration: 12s;
+  animation-delay: -20s;
+}
+
+/*hover background*/
+.space:has(.hungergames:hover),
+.space:has(.hungergames:target) {
+  background: rgb(33 36 44)
+}
+
+/*MOODBOARD*/
+
+.hungergames-moodboard {
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate hungergames board */
+.space:has(.hungergames:target) .hungergames-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.hungergames-moodboard .img1 { position: absolute; height: 100vh; opacity: 0.9; top: 0; left: 0; }
+.hungergames-moodboard .img2 { position: absolute; bottom: 0; right: 0; height: 30vh; }
+.hungergames-moodboard .img3 { position: absolute; top: 0; right: 0; height: 20vw; }
+.hungergames-moodboard .img4 { position: absolute; bottom: 25%; left: 5%; height: 50vh; }
+.hungergames-moodboard .img5 { position: absolute; bottom: 0; left: 25%; height: 50vh; }
+.hungergames-moodboard .img6 { position: absolute; bottom: 50%; right: 50%; height: 50vh; }
+
+
+/* Escape word base */
+.hungergames-moodboard .escape-word {
+  position: absolute;
+  font-size: 5vw;
+  color: #163f38;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.hungergames-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#7da17e;
+  transform: scale(1.05);
+}
+
+
+.hungergames-moodboard .reality {
+  position: absolute;    
+  top: 20%;
+  left: 8%;
+}
+
+.hungergames-moodboard .home {
+  position: absolute;    
+  bottom: 15%;
+  right: 12%;
+}
