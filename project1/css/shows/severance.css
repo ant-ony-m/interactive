@@ -1,0 +1,84 @@
+/* Script Position*/
+.severance {
+  left: 5%;
+  --scale: .8;
+  --tilt: -3deg;
+  --bend-x: 60deg;
+  --bend-y: 30deg;
+  animation-duration: 20s;
+  animation-delay: 0s;
+}
+
+.severance:target {
+  mix-blend-mode:difference;
+}
+
+
+/* Script Hover*/
+.space:has(.severance:hover),
+.space:has(.severance:target) {
+  background: #163f38;
+  
+  /*radial-gradient(circle at center, #163f38, #7da17e,#d6e0e2);*/
+}
+
+
+/*MOODBOARD*/
+
+.severance-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate Severance board */
+.space:has(.severance:target) .severance-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.severance-moodboard .img1 { position: absolute; height: 100vh; width: 150%; opacity: 0.9; top: 0%; left: -20%; }
+
+
+/* Escape word base */
+.severance-moodboard .escape-word {
+  position: absolute;
+  color: #163f38;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.severance-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: sam;
+  color:#7da17e;
+  transform: scale(1.05);
+}
+
+
+.severance-moodboard .reality {
+  position: absolute;  
+  width: 10vw;
+  font-size: 8vw;  
+  top: 7%;
+  left: 5%;
+}
+
+.severance-moodboard .home {
+  position: absolute;    
+  bottom: 40%;
+  right: 5%;
+  width: 5vw;
+}

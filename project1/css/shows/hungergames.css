@@ -1,0 +1,90 @@
+.hungergames {
+  left: 70%;
+  --scale: 0.55;
+  --tilt: 14deg;
+  --bend-x: -50deg;
+  --bend-y: 10deg;
+  animation-duration: 17s;
+  animation-delay: -10s;
+}
+
+.hungergames:target {
+  mix-blend-mode: normal;
+  width: 20vw;
+  left: 40%
+}
+
+/*hover background*/
+.space:has(.hungergames:hover),
+.space:has(.hungergames:target) {
+  background: rgb(70 101 85)
+}
+
+/*MOODBOARD*/
+
+.hungergames-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate hungergames board */
+.space:has(.hungergames:target) .hungergames-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+  
+.hungergames-moodboard .img1 { position: absolute; height:100vh; opacity: 0.9; top: 0; left: 0; }
+
+@media (max-width: 600px) {
+  .hungergames-moodboard .img1 { position: absolute; height: 100vh; opacity: 0.9; top: 0; left: -150%; }
+
+  .hungergames:target {
+    width: 35vw;
+    height: 20vh;
+    left: 60%;
+    top: 60%;
+  }
+}
+
+
+/* Escape word base */
+.hungergames-moodboard .escape-word {
+  position: absolute;
+  color: #ffffff;
+  font-weight: 900;
+  font-family:Verdana, Geneva, Tahoma, sans-serif;
+  letter-spacing: 0.20em;
+  text-decoration: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  z-index: 30;
+  opacity: 0.8;
+}
+
+.hungergames-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  color:#ffc800;
+  transform: scale(1.05);
+}
+
+
+.hungergames-moodboard .reality {
+  position: absolute;    
+  bottom: 20%;
+  left: 2%;
+  font-size: 5vw;
+}
+
+.hungergames-moodboard .home {
+  position: absolute;    
+  bottom: 5%;
+  right: 0%;
+  font-size: 10vw;
+}

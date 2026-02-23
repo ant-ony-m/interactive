@@ -1,0 +1,74 @@
+.wandavision {
+  left: 30%;
+  --scale: .65;
+  --tilt: 20deg;
+  --bend-x: 40deg;
+  --bend-y: -45deg;
+  animation-duration: 18s;
+  animation-delay: -1s;
+}
+
+/*hover background*/
+.space:has(.wandavision:hover),
+.space:has(.wandavision:target) {
+  background: rgb(108 24 27)
+}
+
+/*MOODBOARD*/
+
+.wandavision-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate wandavision board */
+.space:has(.wandavision:target) .wandavision-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+.wandavision-moodboard .img1 { position: absolute; width: 100vw; height: 100vh; opacity: 0.9; top: 0; left: 0; }
+
+
+/* Escape word base */
+.wandavision-moodboard .escape-word {
+  position: absolute;
+  font-weight: 900;
+  color: rgb(161, 0, 0);
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  width: 30vw;
+}
+
+.wandavision-moodboard .escape-word:hover {
+  opacity: 0.9;
+  font-family: Georgia, 'Times New Roman', Times, serif;
+  color:#a9555f;
+  transform: scale(1.05);
+}
+
+
+.wandavision-moodboard .reality {
+  mix-blend-mode:saturation;
+  position: absolute;  
+  font-size: 7vw;  
+  top: 10%;
+  left: 8%;
+}
+
+.wandavision-moodboard .home {
+  mix-blend-mode:color-burn;
+  position: absolute;    
+  bottom: 5%;
+  right: -2%;
+}

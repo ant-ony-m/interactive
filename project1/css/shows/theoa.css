@@ -1,0 +1,77 @@
+.theoa {
+  left: 13%;
+  --scale: .5;
+  --tilt: 10deg;
+  --bend-x: 50deg;
+  --bend-y: -70deg;
+  animation-duration: 10s;
+  animation-delay: 0s;
+}
+
+.theoa:target {
+  mix-blend-mode: difference;
+}
+/*hover background*/
+.space:has(.theoa:hover),
+.space:has(.theoa:target) {
+  background: rgb(44 65 79)
+}
+
+/*MOODBOARD*/
+
+.theoa-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate manifest board */
+.space:has(.theoa:target) .theoa-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.theoa-moodboard .img1 { position: sticky; height: 100%; width: 100vw; opacity: 0.9; top: 0%; left: 10%; }
+
+/* Escape word base */
+.theoa-moodboard .escape-word {
+  position: absolute;
+  font-size: 5vw;
+  color: #ffffff;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.theoa-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#48286d;
+  transform: scale(1.05);
+}
+
+
+.theoa-moodboard .reality {
+  position: absolute;    
+  text-align: center;
+  top: 10%;
+  left: 5%;
+}
+
+.theoa-moodboard .home {
+  position: absolute;    
+  bottom: 15%;
+  right: 8%;
+  text-align: center;
+}

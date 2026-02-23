@@ -1,0 +1,79 @@
+.dontworrydarling{
+  left: 50%;
+  top: -70%;
+  --scale: 0.7;
+  --tilt: -20deg;
+  --bend-x: -7deg;
+  --bend-y: 50deg;
+  animation-duration: 12s;
+  animation-delay: -10s;
+}
+
+/*hover background*/
+.space:has(.dontworrydarling:hover),
+.space:has(.dontworrydarling:target) {
+  background: rgb(169 153 125)
+  
+  /*radial-gradient(circle at center, #dfcc6f, #843d24);*/
+}
+
+/*MOODBOARD*/
+
+.dontworrydarling-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate DONT WORRY DARLING board */
+.space:has(.dontworrydarling:target) .dontworrydarling-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.dontworrydarling-moodboard .img1 { position: absolute; height: 120vh; width: 100vw; opacity: 0.9; top: -20vh; left: 0; }
+
+/* Escape word base */
+.dontworrydarling-moodboard .escape-word {
+  position: absolute;
+  color: #a9870b;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  mix-blend-mode: color-dodge;
+}
+
+.dontworrydarling-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#00323d;
+  transform: scale(1.05);
+}
+
+
+.dontworrydarling-moodboard .reality {
+  position: absolute;   
+  font-size: 10vw; 
+  width: 20vw;
+  top: 2%;
+  left: 8%;
+}
+
+.dontworrydarling-moodboard .home {
+  position: absolute;  
+  font-size: 8vw;
+  bottom: 2%;
+  right: 8%;
+  width: 20vw
+}

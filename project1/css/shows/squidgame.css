@@ -1,0 +1,94 @@
+.squidgame{
+  left: 80%;
+  --scale: 0.8;
+  --tilt: -81deg;
+  --bend-x: -10deg;
+  --bend-y: 65deg;
+  animation-duration: 12s;
+  animation-delay: -4s;
+  z-index: 0;
+}
+
+.squidgame:target{
+  mix-blend-mode: color-dodge;
+}
+
+/*hover background*/
+.space:has(.squidgame:hover),
+.space:has(.squidgame:target) {
+  background: #c13253
+  
+  /*radial-gradient(circle at center, #dfcc6f, #843d24);*/
+}
+
+/*MOODBOARD*/
+
+.squidgame-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate SQUID GAME board */
+.space:has(.squidgame:target) .squidgame-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.squidgame-moodboard .img1 { position: absolute; width: 100vw; height: 100vh; opacity: 0.9; top: 0; left: 0; }
+
+
+/* Escape word base */
+.squidgame-moodboard .escape-word {
+  position: absolute;
+  color: #c13253;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.squidgame-moodboard .escape-word:hover {
+  opacity: 0.5;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#006758;
+  transform: scale(1.05);
+}
+
+.squidgame-moodboard .reality {
+  position: absolute;  
+  text-align: center;  
+  font-size: 5vw;
+  top: 5%;
+  left: 5%;
+}
+
+.squidgame-moodboard .home {
+  position: absolute;  
+  text-align: center;  
+  font-size: 5vw;
+  bottom: 3%;
+  right: 3%;
+}
+
+@media(max-width: 600px) {
+  .squidgame-moodboard .reality {
+  font-size: 10vw;
+  top: 15%;
+  left: 5%;
+  }
+
+.squidgame-moodboard .home {
+
+  font-size: 10vw;
+  }
+}

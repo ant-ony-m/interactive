@@ -1,0 +1,78 @@
+.trumanshow {
+  left: 45%;
+  --scale: 0.7;
+  --tilt: 10deg;
+  --bend-x: -8deg;
+  --bend-y: 6deg;
+  animation-duration: 20s;
+  animation-delay: -8s;
+}
+
+.trumanshow:target {
+  mix-blend-mode: darken;
+}
+
+/*hover background*/
+.space:has(.trumanshow:hover),
+.space:has(.trumanshow:target) {
+  background: rgb(128 156 205)
+}
+
+/*MOODBOARD*/
+
+.trumanshow-moodboard {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.1s ease;
+}
+
+/* Activate Severance board */
+.space:has(.trumanshow:target) .trumanshow-moodboard { 
+    opacity: 1; 
+    pointer-events: auto; 
+}
+
+
+/* Severance-specific tweaks */
+.trumanshow-moodboard .img1 { position: absolute; height: 100vh; width: 100vw; top: 0; left: 0; }
+
+/* Escape word base */
+.trumanshow-moodboard .escape-word {
+  position: absolute;
+  font-weight: 900;
+  font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+  letter-spacing: 0.15em;
+  text-decoration: none;
+  opacity: 0.8;
+  transition: opacity 0.4s ease, transform 0.4s ease;
+  mix-blend-mode:overlay;
+}
+
+.trumanshow-moodboard .escape-word:hover {
+  opacity: 0.9;
+  font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+  color:#0033ff;
+  transform: scale(1.05);
+}
+
+
+.trumanshow-moodboard .real {
+  position: absolute;    
+  top: 5%;
+  left: 5%;
+  font-size: 4vw;
+  color: #cae8ff;
+}
+
+.trumanshow-moodboard .home {
+  position: absolute;    
+  bottom: 10%;
+  right: 5%;
+  color: black;
+}

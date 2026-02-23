@@ -1,0 +1,47 @@
+/* TV FRAME*/
+.tv {
+  position: fixed;
+  inset: 0;
+  background: #000000;          
+  padding: 70px;              
+  box-sizing: border-box;
+  z-index: 50;                
+}
+
+.screen {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: calc(100vw - 140px);
+  height: calc(100vh - 140px);
+  background: rgb(40, 40, 40);
+  border-radius: 40px;
+  overflow: hidden;
+  pointer-events: auto;
+
+  box-shadow:
+    0 0 0 70px #000000, 
+    inset 0 0 120px rgba(0,0,0,0.9),
+    inset 0 0 40px rgba(0,0,0,0.6),
+    0 0 80px rgba(0,0,0,0.8);
+}
+
+.screen-off {
+  background: black;
+  transition: background 0.2s ease;
+}
+
+.power-btn {
+  position: fixed;
+  bottom: -10;  
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;     
+}
+
+.power-btn img {
+  width: 70px;
+  cursor: pointer;
+}
+
