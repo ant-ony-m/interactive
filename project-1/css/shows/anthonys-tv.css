@@ -1,13 +1,14 @@
 .anthonys-tv {
   left: 5%;
   --scale: .65;
-  --tilt: 2deg;
-  --bend-x: 50deg;
-  --bend-y: -30deg;
-  animation-duration: 10;
-  animation-delay: -10s;
+  --tilt: -5deg;
+  --bend-x: -29deg;
+  --bend-y: -40deg;
+  animation-duration: 12s;
+  animation-delay: -18s;
   z-index: 0;
 }
+
 
 .anthonys-tv:target {
   mix-blend-mode:normal;
@@ -16,7 +17,7 @@
 /*hover background*/
 .space:has(.anthonys-tv:hover),
 .space:has(.anthonys-tv:target) {
-  background: rgb(70 33 60)
+  background: rgb(36, 51, 113)
 }
 
 /*MOODBOARD*/
@@ -39,14 +40,6 @@
     pointer-events: auto; 
 }
 
-
-/* Severance-specific tweaks */
-.anthonys-tv-moodboard .img1 { position: absolute; height: 150vh; width:120vw; opacity: 0.9; top: -50%; left: 0;}
-
-@media (max-width: 800px) {
-  .anthonys-tv-moodboard .img1 { position: absolute; height: 100vh; width: 100vw; opacity: 0.9; top: -10%; left: 0%; }
-}
-
 /* Escape word base */
 .anthonys-tv-moodboard .escape-word {
   position: absolute;
@@ -62,23 +55,15 @@
 .anthonys-tv-moodboard .escape-word:hover {
   opacity: 0.3;
   font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
-  color:#480048;
+  color:#ffd2ff;
   transform: scale(1.05);
 }
 
 
-.anthonys-tv-moodboard .reality {
-  position: absolute;   
-  width: 10vw; 
-  font-size: 9vw;
-  top: 10%;
-  left: 8%;
-  font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
-}
 
 .anthonys-tv-moodboard .home {
   position: absolute;    
   bottom: 5%;
   right: 5%;
-  font-family: cursive;
+  font-family:Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
 }
