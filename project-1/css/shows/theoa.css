@@ -31,7 +31,7 @@
     transition: opacity 0.1s ease;
 }
 
-/* Activate manifest board */
+/* Activate the oa board */
 .space:has(.theoa:target) .theoa-moodboard { 
     opacity: 1; 
     pointer-events: auto; 

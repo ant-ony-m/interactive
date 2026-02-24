@@ -32,7 +32,7 @@
     transition: opacity 0.1s ease;
 }
 
-/* Activate Severance board */
+/* Activate truman show board */
 .space:has(.trumanshow:target) .trumanshow-moodboard { 
     opacity: 1; 
     pointer-events: auto; 

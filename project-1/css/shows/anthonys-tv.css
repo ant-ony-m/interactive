@@ -34,7 +34,7 @@
     transition: opacity 0.1s ease;
 }
 
-/* Activate manifest board */
+/* Activate anthony's tv board */
 .space:has(.anthonys-tv:target) .anthonys-tv-moodboard { 
     opacity: 1; 
     pointer-events: auto; 

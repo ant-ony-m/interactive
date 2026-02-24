@@ -33,7 +33,7 @@
     transition: opacity 0.1s ease;
 }
 
-/* Activate manifest board */
+/* Activate black mirror board */
 .space:has(.blackmirror:target) .blackmirror-moodboard { 
     opacity: 1; 
     pointer-events: auto; 
