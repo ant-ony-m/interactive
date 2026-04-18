@@ -1,0 +1,19 @@
+<!--?xml version="1.0" encoding="UTF-8"?-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 800" width="600" height="800">
+
+  <!-- outer court -->
+  <rect x="90" y="80" width="420" height="640" fill="none" stroke="rgb(255, 221, 0)" stroke-width="3"></rect>
+
+  <!-- short line -->
+  <line x1="90" y1="440" x2="510" y2="440" stroke="rgb(255, 221, 0)" stroke-width="3"></line>
+
+  <!-- half court line -->
+  <line x1="300" y1="440" x2="300" y2="720" stroke="rgb(255, 221, 0)" stroke-width="3"></line>
+
+  <!-- left service box -->
+  <rect x="90" y="440" width="105" height="105" fill="none" stroke="rgb(255, 221, 0)" stroke-width="3"></rect>
+
+  <!-- right service box -->
+  <rect x="405" y="440" width="105" height="105" fill="none" stroke="rgb(255, 221, 0)" stroke-width="3"></rect>
+
+</svg>

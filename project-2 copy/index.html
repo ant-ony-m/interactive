@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ghost - Squash Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gruppo&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://docs.opencv.org/4.x/opencv.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</head>
+<body>
+
+    <div id="home" class="screen active">
+        <section class="hero">
+            <div class="hero-content">
+                <h1 class="logo">
+                    GH<img src="assets/squashball.svg" class="ball logo" alt="O">ST
+                </h1>
+                <p class="tagline">squash movement visualizer</p>
+            </div>
+        </section>
+
+        <section class="court-section">
+            <div class="court"></div>
+            <p class="credit">created by Anthony Mendias</p>
+        </section>
+
+        <section class="cta">
+            <button onclick="goToAbout()">ABOUT</button>
+            <button onclick="goToCamera()">START RECORDING</button>
+            <button onclick="goToPast()">PAST RALLIES</button>
+        </section>
+    </div>
+
+    <div id="camera" class="screen">
+        <div class="camera-ui-container">
+            <video id="cameraFeed" autoplay playsinline></video>
+            <canvas id="overlayCanvas"></canvas>
+            
+            <div class="camera-controls">
+                <p id="instruction">Click 4 corners: Front-Left, Front-Right, Back-Right, Back-Left</p>
+                <div class="button-group">
+                    <button onclick="resetCalibration()">RESET</button>
+                    <button id="startTrackBtn" onclick="startCapture()" disabled>START RECORDING</button>
+                    <button onclick="goHome()">BACK</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit" class="screen">
+        <div class="animation-container">
+            <h3>Live Movement</h3>
+            <canvas id="courtCanvas" width="210" height="320"></canvas>
+            <button class="stop-btn" onclick="stopRecording()">STOP & SAVE</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
