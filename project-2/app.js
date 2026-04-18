@@ -52,31 +52,59 @@ async function startCamera() {
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // 1. Setup Camera Stream - REFINED FOR MOBILE BACK CAMERA
     const constraints = {
         video: {
-            facingMode: { ideal: "environment" }, // 'ideal' is less likely to crash than 'exact'
+            facingMode: "environment",
             width: { ideal: 640 },
             height: { ideal: 480 }
         }
     };
 
     try {
+        // Stop any existing tracks
         if (video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
         }
+
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-        await video.play(); // Force play on mobile
+
+        // Force the video to play and wait for it to actually start
+        await new Promise((resolve) => {
+            video.onloadedmetadata = () => {
+                video.play().then(resolve);
+            };
+        });
+
+        // Sync canvas size to the actual video stream dimensions
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        const camera = new Camera(video, {
+            onFrame: async () => {
+                await pose.send({ image: video });
+            },
+            width: video.videoWidth,
+            height: video.videoHeight
+        });
+        
+        camera.start();
+
     } catch (err) {
-        console.error("Back camera failed, trying fallback:", err);
+        console.error("Camera Init Failed:", err);
+        // Fallback for desktop/front cam
         const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = fallback;
-        await video.play();
+        video.play();
     }
 
-    // 2. The AI Processing Loop
     pose.onResults((results) => {
+        // Ensure canvas stays in sync if phone rotates
+        if (canvas.width !== video.videoWidth) {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        }
+
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         drawCalibration(ctx);
 
@@ -92,11 +120,14 @@ async function startCamera() {
             activePlayer.x = midX;
             activePlayer.y = midY;
 
+            // Simplified drawing (no shadows) for mobile performance
             ctx.fillStyle = activePlayer.color;
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = activePlayer.color;
-            ctx.beginPath(); ctx.arc(midX, midY, 12, 0, Math.PI * 2); ctx.fill();
-            ctx.shadowBlur = 0;
+            ctx.beginPath(); 
+            ctx.arc(midX, midY, 12, 0, Math.PI * 2); 
+            ctx.fill();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
             if (isRecording && homographyMatrix) {
                 const courtPos = mapToCourt(midX, midY);
@@ -111,36 +142,6 @@ async function startCamera() {
             }
         }
     });
-
-    // 3. Start MediaPipe Camera Helper
-    const camera = new Camera(video, {
-        onFrame: async () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            await pose.send({ image: video });
-        },
-        width: 640,
-        height: 480
-    });
-    camera.start();
-
-    // 4. Handle Calibration Clicks
-    canvas.onclick = (e) => {
-        if (srcPoints.length < 8) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-            srcPoints.push(x, y);
-
-            if (srcPoints.length === 8) {
-                calculateHomography();
-                const startBtn = document.getElementById("startTrackBtn");
-                if (startBtn) startBtn.disabled = false;
-                const inst = document.getElementById("instruction");
-                if (inst) inst.innerText = "Calibration Complete!";
-            }
-        }
-    };
 }
 
 // --- UTILS & MATH ---
