@@ -77,8 +77,7 @@ async function startCamera() {
         const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = fallbackStream;
     }
-    // ... (rest of function)
-}
+    
     camera.start();
 
     pose.onResults((results) => {
