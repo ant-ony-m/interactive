@@ -50,7 +50,7 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 /* CAMERA UI */
 .camera-ui-container { position: relative; height: 100vh; width: 100vw; overflow: hidden; background: #000; }
 
-/* --- FULLSCREEN CAMERA CONTAINER --- */
+/* Screen Container */
 #camera.screen {
     position: fixed;
     top: 0;
@@ -58,75 +58,83 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     width: 100vw;
     height: 100vh;
     background: #000;
-    display: none; /* Hidden unless active */
+    display: none;
     overflow: hidden;
 }
 
-#camera.active {
-    display: block; /* Native camera app feel */
-}
+#camera.active { display: block; }
 
-/* 1. The Video Background - Fills everything */
-#cameraFeed {
-    width: 100vw;
-    height: 100vh;
-    object-fit: cover; 
+/* The Camera "Layer" */
+.viewport {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1; /* Bottom Layer */
+    width: 100%;
+    height: 100%;
+    z-index: 1;
 }
 
-/* 2. The AI & Calibration Layer */
+#cameraFeed {
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* This makes it fill the screen on phone/laptop */
+}
+
 #overlayCanvas {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 10; /* Middle Layer */
-    touch-action: none;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
 }
 
-/* 3. The Floating Controls - Over the video */
-.camera-controls {
+/* The UI "Layer" - This keeps buttons visible */
+.camera-ui {
     position: absolute;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 100px; /* Fixed height for the control bar */
+    padding: 30px;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    z-index: 20; /* Top Layer */
-    
-    /* Transparent gradient so you can see the court behind buttons */
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
-    padding-bottom: 20px; 
+    z-index: 100; /* Stays above the video */
+    background: linear-gradient(transparent, rgba(0,0,0,0.7));
 }
 
-.camera-controls button {
-    padding: 15px 25px;
-    font-size: 14px;
-    border-radius: 50px; /* Pill style like a native app */
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    background: rgba(0, 0, 0, 0.5);
-    color: #fff;
+#instruction {
+    position: absolute;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    z-index: 100;
+    color: gold;
     font-weight: bold;
-    backdrop-filter: blur(5px); /* Modern frosted glass look */
-    transition: 0.2s;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    font-size: 1.1rem;
 }
 
-.camera-controls button:active {
-    transform: scale(0.95);
+/* Button Styling */
+.btn-primary {
     background: #fff;
     color: #000;
+    border: none;
+    padding: 15px 25px;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
 }
 
-.camera-controls button:disabled {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.1);
-    color: #666;
+.btn-primary:disabled { background: #444; color: #888; }
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    padding: 12px 20px;
+    border-radius: 50px;
+    backdrop-filter: blur(5px);
 }
 
 /* --- ANIMATION SCREEN (Fixed for accuracy) --- */
@@ -145,3 +153,4 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     border-radius: 5px; 
     box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
 }
+

@@ -40,26 +40,28 @@
     </div>
 
     <div id="camera" class="screen">
-        <div id="instruction">Tap the 4 corners of the court</div>
+        <div id="instruction">Tap the 4 corners of the court (Front-Left first)</div>
         
-        <video id="cameraFeed" playsinline muted></video>
-        <canvas id="overlayCanvas"></canvas>
+        <div class="viewport">
+            <video id="cameraFeed" playsinline muted></video>
+            <canvas id="overlayCanvas"></canvas>
+    </div>
 
-        <div class="camera-ui-container">
-            <button onclick="goHome()">Exit</button>
-            <button onclick="resetCalibration()">Reset</button>
-            <button id="startTrackBtn" onclick="startCapture()" disabled>Start Tracking</button>
+        <div class="camera-ui">
+            <button onclick="goHome()" class="btn-secondary">Exit</button>
+            <button onclick="resetCalibration()" class="btn-secondary">Reset</button>
+            <button id="startTrackBtn" onclick="startCapture()" class="btn-primary" disabled>Start Tracking</button>
         </div>
     </div>
 
     <div id="edit" class="screen">
         <div class="animation-container">
-            <h3>Live Movement</h3>
-            <canvas id="courtCanvas" width="210" height="320"></canvas>
-            <button class="stop-btn" onclick="stopRecording()">STOP & SAVE</button>
+            <h2>Rally Heatmap</h2>
+            <canvas id="courtCanvas"></canvas>
+            <button onclick="stopRecording()" class="btn-primary">Finish & Save</button>
         </div>
     </div>
-
+    
     <script src="app.js"></script>
 </html>
 
