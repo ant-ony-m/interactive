@@ -22,9 +22,7 @@ function goToCamera() {
 }
 
 function goHome() { location.reload(); }
-
 function goToAbout() { alert("Ghost - Squash Movement Visualizer project."); }
-
 function goToPast() { alert("Past rallies feature coming soon!"); }
 
 // --- SCROLL & UI ANIMATIONS ---
@@ -32,16 +30,8 @@ window.addEventListener("scroll", () => {
     const scroll = window.scrollY;
     const ball = document.querySelector(".ball");
     const cta = document.querySelector(".cta");
-
-    // Rotate and move the ball logo based on scroll
-    if (ball) {
-        ball.style.transform = `translateY(${scroll * 0.8}px) rotate(${scroll}deg)`;
-    }
-    
-    // Reveal the Call to Action buttons after scrolling down
-    if (scroll > 600 && cta) {
-        cta.classList.add("visible");
-    }
+    if (ball) ball.style.transform = `translateY(${scroll * 0.8}px) rotate(${scroll}deg)`;
+    if (scroll > 600 && cta) cta.classList.add("visible");
 });
 
 // --- INITIALIZE MEDIAPIPE ---
@@ -62,23 +52,32 @@ async function startCamera() {
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // 1. Setup Camera Stream with Mobile Fallback
+    // 1. Setup Camera Stream - REFINED FOR MOBILE BACK CAMERA
+    const constraints = {
+        video: {
+            facingMode: { ideal: "environment" }, // 'ideal' is less likely to crash than 'exact'
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+        }
+    };
+
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: "environment", width: 640, height: 480 } 
-        });
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
+        await video.play(); // Force play on mobile
     } catch (err) {
-        console.error("Back camera failed, trying default:", err);
+        console.error("Back camera failed, trying fallback:", err);
         const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = fallback;
+        await video.play();
     }
 
     // 2. The AI Processing Loop
     pose.onResults((results) => {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw calibration dots every frame so they don't flicker
         drawCalibration(ctx);
 
         if (results.poseLandmarks) {
@@ -86,7 +85,6 @@ async function startCamera() {
             const midX = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
             const midY = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
 
-            // Identity logic: which player is closer to this detection?
             const distP1 = Math.hypot(midX - p1.x, midY - p1.y);
             const distP2 = Math.hypot(midX - p2.x, midY - p2.y);
 
@@ -94,14 +92,12 @@ async function startCamera() {
             activePlayer.x = midX;
             activePlayer.y = midY;
 
-            // Draw the player marker on the camera feed
             ctx.fillStyle = activePlayer.color;
             ctx.shadowBlur = 10;
             ctx.shadowColor = activePlayer.color;
             ctx.beginPath(); ctx.arc(midX, midY, 12, 0, Math.PI * 2); ctx.fill();
             ctx.shadowBlur = 0;
 
-            // Record data for the final product
             if (isRecording && homographyMatrix) {
                 const courtPos = mapToCourt(midX, midY);
                 rallyData.push({
@@ -116,26 +112,22 @@ async function startCamera() {
         }
     });
 
-    // 3. Start Camera Helper once video is ready
-    video.onloadedmetadata = () => {
-        video.play();
-        const camera = new Camera(video, {
-            onFrame: async () => {
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                await pose.send({ image: video });
-            },
-            width: 640,
-            height: 480
-        });
-        camera.start();
-    };
+    // 3. Start MediaPipe Camera Helper
+    const camera = new Camera(video, {
+        onFrame: async () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            await pose.send({ image: video });
+        },
+        width: 640,
+        height: 480
+    });
+    camera.start();
 
     // 4. Handle Calibration Clicks
     canvas.onclick = (e) => {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
-            // Scaling coordinates to match internal canvas resolution
             const x = (e.clientX - rect.left) * (canvas.width / rect.width);
             const y = (e.clientY - rect.top) * (canvas.height / rect.height);
             srcPoints.push(x, y);
@@ -165,7 +157,7 @@ function drawCalibration(ctx) {
 }
 
 function calculateHomography() {
-    if (typeof cv === 'undefined') return alert("OpenCV is still loading...");
+    if (typeof cv === 'undefined' || !cv.matFromArray) return alert("OpenCV is still loading...");
     const srcCoords = cv.matFromArray(4, 1, cv.CV_32FC2, srcPoints);
     const dstCoords = cv.matFromArray(4, 1, cv.CV_32FC2, [0, 0, courtWidth, 0, courtWidth, courtHeight, 0, courtHeight]);
     homographyMatrix = cv.findHomography(srcCoords, dstCoords);
@@ -179,30 +171,21 @@ function mapToCourt(vx, vy) {
 }
 
 function drawLiveAnimation(x, y, color) {
-    const cCtx = document.getElementById("courtCanvas").getContext("2d");
+    const cCanvas = document.getElementById("courtCanvas");
+    const cCtx = cCanvas.getContext("2d");
     cCtx.fillStyle = "rgba(0,0,0,0.01)";
     cCtx.fillRect(0, 0, courtWidth, courtHeight);
     cCtx.fillStyle = color;
     cCtx.beginPath(); cCtx.arc(x, y, 3, 0, Math.PI * 2); cCtx.fill();
 }
 
-function startCapture() { 
-    rallyData = []; 
-    isRecording = true; 
-    showScreen("edit"); 
-}
-
-function stopRecording() { 
-    isRecording = false; 
-    renderFinalProduct(); 
-}
+function startCapture() { rallyData = []; isRecording = true; showScreen("edit"); }
+function stopRecording() { isRecording = false; renderFinalProduct(); }
 
 function renderFinalProduct() {
     const canvas = document.getElementById("courtCanvas");
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, courtWidth, courtHeight);
-    
-    // Play back the recorded movement
     rallyData.forEach((p, i) => {
         setTimeout(() => {
             ctx.fillStyle = p.color;
@@ -211,3 +194,11 @@ function renderFinalProduct() {
         }, i * 5);
     });
 }
+
+// Expose functions globally for HTML buttons
+window.goToCamera = goToCamera;
+window.goHome = goHome;
+window.goToAbout = goToAbout;
+window.goToPast = goToPast;
+window.startCapture = startCapture;
+window.stopRecording = stopRecording;
