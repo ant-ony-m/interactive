@@ -9,11 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gruppo&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
     
+    <script src="https://docs.opencv.org/4.x/opencv.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
-    <script async src="https://docs.opencv.org/4.x/opencv.js"></script>
-
 </head>
 <body>
 
@@ -40,15 +38,18 @@
     </div>
 
     <div id="camera" class="screen">
-        <div id="instruction">Tap the 4 corners of the court</div>
-        
-        <video id="cameraFeed" playsinline muted></video>
-        <canvas id="overlayCanvas"></canvas>
-
         <div class="camera-ui-container">
-            <button onclick="goHome()">Exit</button>
-            <button onclick="resetCalibration()">Reset</button>
-            <button id="startTrackBtn" onclick="startCapture()" disabled>Start Tracking</button>
+            <video id="cameraFeed" autoplay playsinline></video>
+            <canvas id="overlayCanvas"></canvas>
+            
+            <div class="camera-controls">
+                <p id="instruction">Click 4 corners: Front-Left, Front-Right, Back-Right, Back-Left</p>
+                <div class="button-group">
+                    <button onclick="resetCalibration()">RESET</button>
+                    <button id="startTrackBtn" onclick="startCapture()" disabled>START RECORDING</button>
+                    <button onclick="goHome()">BACK</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -61,5 +62,5 @@
     </div>
 
     <script src="app.js"></script>
+</body>
 </html>
-
