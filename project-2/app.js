@@ -52,28 +52,68 @@ async function startCamera() {
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // 1. Force BACK camera with 'exact'
-    const constraints = {
-        video: {
-            facingMode: { exact: "environment" },
-            width: { ideal: 640 },
-            height: { ideal: 480 }
+    // --- 1. THE PERMANENT DRAWING LOOP ---
+    function render() {
+        // Clear the canvas every frame
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // DRAW CALIBRATION DOTS (GOLD)
+        for (let i = 0; i < srcPoints.length / 2; i++) {
+            const x = srcPoints[i * 2];
+            const y = srcPoints[i * 2 + 1];
+            
+            ctx.fillStyle = "gold";
+            ctx.beginPath();
+            ctx.arc(x, y, 8, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.fillStyle = "white";
+            ctx.font = "bold 14px Lexend";
+            ctx.fillText(cornerLabels[i] || "", x + 12, y + 5);
         }
-    };
+        
+        // DRAW PLAYER 1 (CYAN)
+        if (p1.currentX && p1.currentY) {
+            ctx.fillStyle = p1.color;
+            ctx.beginPath();
+            ctx.arc(p1.currentX, p1.currentY, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
 
+        // DRAW PLAYER 2 (PINK)
+        if (p2.currentY && p2.currentX) {
+            ctx.fillStyle = p2.color;
+            ctx.beginPath();
+            ctx.arc(p2.currentX, p2.currentY, 12, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = "white";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        requestAnimationFrame(render);
+    }
+    requestAnimationFrame(render);
+
+    // --- 2. CAMERA STARTUP ---
     try {
-        // Kill any existing streams first
         if (video.srcObject) {
             video.srcObject.getTracks().forEach(track => track.stop());
         }
 
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
+        // Use 'ideal' facingMode to avoid strict hardware errors on some phones
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }
+        });
         
-        // Mobile browsers need this to actually show the frames
-        video.setAttribute("playsinline", true); 
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
         await video.play();
 
+        // Sync sizes
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
@@ -87,20 +127,60 @@ async function startCamera() {
         camera.start();
 
     } catch (err) {
-        console.warn("Exact environment failed, trying 'ideal' fallback...", err);
-        // Fallback if 'exact' is too strict for certain hardware
-        try {
-            const fallbackStream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-            video.srcObject = fallbackStream;
-            await video.play();
-        } catch (e) {
-            alert("Could not access back camera. Please check browser permissions.");
-        }
+        console.error("Camera error:", err);
+        // Secondary fallback for all devices
+        const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = fallback;
+        video.play();
     }
-    
-    // ... rest of your mainLoop and onResults logic ...
+
+    // --- 3. AI RESULTS ---
+    pose.onResults((results) => {
+        if (results.poseLandmarks) {
+            const landmarks = results.poseLandmarks;
+            const midX = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
+            const midY = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
+
+            const d1 = Math.hypot(midX - p1.x, midY - p1.y);
+            const d2 = Math.hypot(midX - p2.x, midY - p2.y);
+
+            let active = d1 < d2 ? p1 : p2;
+            active.currentX = midX;
+            activePlayer.currentY = midY;
+            active.x = midX;
+            active.y = midY;
+
+            if (isRecording && homographyMatrix) {
+                const courtPos = mapToCourt(midX, midY);
+                rallyData.push({
+                    player: active.label,
+                    x: courtPos.x,
+                    y: courtPos.y,
+                    color: active.color,
+                    time: Date.now()
+                });
+                drawLiveAnimation(courtPos.x, courtPos.y, active.color);
+            }
+        }
+    });
+
+    // --- 4. CLICK HANDLER ---
+    canvas.onclick = (e) => {
+        if (srcPoints.length < 8) {
+            const rect = canvas.getBoundingClientRect();
+            // This math ensures the dot lands exactly where you touch even on mobile
+            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+            
+            srcPoints.push(clickX, clickY);
+
+            if (srcPoints.length === 8) {
+                calculateHomography();
+                const btn = document.getElementById("startTrackBtn");
+                if (btn) btn.disabled = false;
+            }
+        }
+    };
 }
 
 // Helper to keep drawing clean
