@@ -49,71 +49,99 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 
 /* CAMERA UI */
 .camera-ui-container { position: relative; height: 100vh; width: 100vw; overflow: hidden; background: #000; }
+
+/* --- FULLSCREEN CAMERA CONTAINER --- */
 #camera.screen {
-    display: none; /* Hidden by default */
-    flex-direction: column;
-    width: 100vw;
-    height: 100vh;
-    background: #000;
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 999;
-}
-
-#camera.active {
-    display: flex; /* Shown when active */
-}
-
-/* Container for the video and canvas */
-.viewport-container {
-    position: relative;
-    width: 100%;
-    flex-grow: 1; /* Takes up all space minus the button bar */
+    width: 100vw;
+    height: 100vh;
+    background: #000;
+    display: none; /* Hidden unless active */
     overflow: hidden;
 }
 
-#cameraFeed {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Fills the area */
+#camera.active {
+    display: block; /* Native camera app feel */
 }
 
+/* 1. The Video Background - Fills everything */
+#cameraFeed {
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Bottom Layer */
+}
+
+/* 2. The AI & Calibration Layer */
 #overlayCanvas {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 10;
+    width: 100vw;
+    height: 100vh;
+    z-index: 10; /* Middle Layer */
+    touch-action: none;
 }
 
-/* Button bar at the bottom */
+/* 3. The Floating Controls - Over the video */
 .camera-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100px; /* Fixed height for the control bar */
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 15px;
-    background: rgba(0, 0, 0, 0.85);
-    z-index: 20;
-    border-top: 1px solid #333;
+    z-index: 20; /* Top Layer */
+    
+    /* Transparent gradient so you can see the court behind buttons */
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+    padding-bottom: 20px; 
 }
 
 .camera-controls button {
-    padding: 12px 20px;
+    padding: 15px 25px;
     font-size: 14px;
-    border-radius: 8px;
-    border: none;
+    border-radius: 50px; /* Pill style like a native app */
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-weight: bold;
+    backdrop-filter: blur(5px); /* Modern frosted glass look */
+    transition: 0.2s;
+}
+
+.camera-controls button:active {
+    transform: scale(0.95);
     background: #fff;
     color: #000;
-    font-weight: bold;
 }
 
 .camera-controls button:disabled {
-    background: #444;
-    color: #888;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #666;
 }
 
-/* ANIMATION SCREEN */
-.animation-container { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#courtCanvas { background: #111; border: 2px solid gold; border-radius: 5px; }
+/* --- ANIMATION SCREEN (Fixed for accuracy) --- */
+.animation-container { 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    background: #000;
+}
+
+#courtCanvas { 
+    background: #111; 
+    border: 2px solid gold; 
+    border-radius: 5px; 
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
