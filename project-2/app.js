@@ -52,7 +52,7 @@ async function startCamera() {
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // --- 1. THE PERMANENT DRAWING LOOP ---
+    // 1. PERMANENT RENDER LOOP
     function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
@@ -79,49 +79,52 @@ async function startCamera() {
     }
     requestAnimationFrame(render);
 
-    // --- 2. THE CAMERA CONSTRAINT LADDER ---
-    let stream;
-    const modes = [
-        { video: { facingMode: { exact: "environment" } } }, // 1. Force Back
-        { video: { facingMode: "environment" } },           // 2. Prefer Back
-        { video: true }                                     // 3. Any Camera
-    ];
-
-    for (const mode of modes) {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia(mode);
-            if (stream) break; // If it works, stop trying
-        } catch (e) {
-            console.warn(`Camera mode failed: ${JSON.stringify(mode)}`, e);
+    // 2. HARD-FORCE BACK CAMERA & 16:9 RATIO
+    const constraints = {
+        video: {
+            facingMode: { exact: "environment" },
+            // Most phone back cameras are optimized for 1280x720 (16:9)
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
         }
+    };
+
+    try {
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.muted = true;
+        await video.play();
+
+        // 3. AUTO-ADAPT CANVAS TO VIDEO RATIO
+        // This ensures your taps and the AI tracking match the pixels perfectly
+        const setCanvasSize = () => {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+        };
+        setCanvasSize();
+        // Re-check size if the phone orientation changes
+        window.addEventListener('resize', setCanvasSize);
+
+        const camera = new Camera(video, {
+            onFrame: async () => {
+                await pose.send({ image: video });
+            },
+            width: video.videoWidth,
+            height: video.videoHeight
+        });
+        camera.start();
+
+    } catch (err) {
+        console.warn("Back camera blocked or not found:", err);
+        alert("Please turn your phone to LANDSCAPE and ensure camera permissions are allowed.");
     }
 
-    if (!stream) {
-        alert("Unable to access any camera. Please check permissions.");
-        return;
-    }
-
-    // --- 3. VIDEO INITIALIZATION ---
-    video.srcObject = stream;
-    video.setAttribute("playsinline", true); // CRITICAL for iOS
-    video.setAttribute("muted", true);       // Helps auto-play policy
-    
-    await video.play();
-
-    // Ensure internal resolution matches what the camera is actually sending
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-
-    const camera = new Camera(video, {
-        onFrame: async () => {
-            await pose.send({ image: video });
-        },
-        width: video.videoWidth,
-        height: video.videoHeight
-    });
-    camera.start();
-
-    // --- 4. AI RESULTS (With Typo Fixed) ---
+    // 4. AI TRACKING (Fixed Logic)
     pose.onResults((results) => {
         if (results.poseLandmarks) {
             const landmarks = results.poseLandmarks;
@@ -133,7 +136,6 @@ async function startCamera() {
 
             let active = d1 < d2 ? p1 : p2;
             
-            // Fix: No more 'activePlayer' typo
             active.currentX = mx;
             active.currentY = my;
             active.x = mx;
@@ -152,14 +154,19 @@ async function startCamera() {
         }
     });
 
-    // --- 5. CALIBRATION CLICK HANDLER ---
+    // 5. CALIBRATION CLICK HANDLER (Scaled for Aspect Ratio)
     canvas.onclick = (e) => {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
+            // Scaling logic: converts screen-tap-pixels to video-stream-pixels
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            
             srcPoints.push(
-                (e.clientX - rect.left) * (canvas.width / rect.width),
-                (e.clientY - rect.top) * (canvas.height / rect.height)
+                (e.clientX - rect.left) * scaleX,
+                (e.clientY - rect.top) * scaleY
             );
+
             if (srcPoints.length === 8) {
                 calculateHomography();
                 const btn = document.getElementById("startTrackBtn");
