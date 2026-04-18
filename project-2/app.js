@@ -182,7 +182,7 @@ async function startCamera() {
             }
         }
     };
-}
+
 
 
     // 3. AI DETECTION
