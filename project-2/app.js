@@ -47,36 +47,40 @@ pose.setOptions({
 });
 
 // --- CAMERA & TRACKING ---
+// --- UPDATED TRACKING & DRAWING ---
 async function startCamera() {
     const video = document.getElementById("cameraFeed");
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    const constraints = {
-        video: {
-            facingMode: "environment",
-            width: { ideal: 640 },
-            height: { ideal: 480 }
+    // 1. SET UP THE PERMANENT DRAWING LOOP
+    // This runs independently of the AI so dots NEVER disappear
+    function mainLoop() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Always draw calibration dots
+        drawCalibration(ctx);
+        
+        // Draw the player marker if we have current data
+        if (p1.currentX && p1.currentY) {
+            drawPlayerMarker(ctx, p1);
         }
-    };
+        if (p2.currentX && p2.currentY) {
+            drawPlayerMarker(ctx, p2);
+        }
 
+        requestAnimationFrame(mainLoop);
+    }
+    requestAnimationFrame(mainLoop);
+
+    // 2. START CAMERA
     try {
-        // Stop any existing tracks
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        video.srcObject = stream;
-
-        // Force the video to play and wait for it to actually start
-        await new Promise((resolve) => {
-            video.onloadedmetadata = () => {
-                video.play().then(resolve);
-            };
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment", width: 640, height: 480 } 
         });
-
-        // Sync canvas size to the actual video stream dimensions
+        video.srcObject = stream;
+        await video.play();
+        
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
@@ -87,27 +91,13 @@ async function startCamera() {
             width: video.videoWidth,
             height: video.videoHeight
         });
-        
         camera.start();
-
     } catch (err) {
-        console.error("Camera Init Failed:", err);
-        // Fallback for desktop/front cam
-        const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = fallback;
-        video.play();
+        console.error("Camera failed:", err);
     }
 
+    // 3. AI LOGIC (Updates data, doesn't handle drawing)
     pose.onResults((results) => {
-        // Ensure canvas stays in sync if phone rotates
-        if (canvas.width !== video.videoWidth) {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-        }
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawCalibration(ctx);
-
         if (results.poseLandmarks) {
             const landmarks = results.poseLandmarks;
             const midX = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
@@ -117,17 +107,12 @@ async function startCamera() {
             const distP2 = Math.hypot(midX - p2.x, midY - p2.y);
 
             let activePlayer = distP1 < distP2 ? p1 : p2;
-            activePlayer.x = midX;
+            
+            // Store coordinates for the mainLoop to draw
+            activePlayer.currentX = midX;
+            activePlayer.currentY = midY;
+            activePlayer.x = midX; // Update last known for distance check
             activePlayer.y = midY;
-
-            // Simplified drawing (no shadows) for mobile performance
-            ctx.fillStyle = activePlayer.color;
-            ctx.beginPath(); 
-            ctx.arc(midX, midY, 12, 0, Math.PI * 2); 
-            ctx.fill();
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            ctx.stroke();
 
             if (isRecording && homographyMatrix) {
                 const courtPos = mapToCourt(midX, midY);
@@ -142,6 +127,33 @@ async function startCamera() {
             }
         }
     });
+
+    // 4. CLICK HANDLER
+    canvas.onclick = (e) => {
+        if (srcPoints.length < 8) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
+            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
+            srcPoints.push(x, y);
+            console.log("Point added:", x, y); // Check console on phone if possible
+            
+            if (srcPoints.length === 8) {
+                calculateHomography();
+                document.getElementById("startTrackBtn").disabled = false;
+            }
+        }
+    };
+}
+
+// Helper to keep drawing clean
+function drawPlayerMarker(ctx, player) {
+    ctx.fillStyle = player.color;
+    ctx.beginPath();
+    ctx.arc(player.currentX, player.currentY, 12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "white";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 }
 
 // --- UTILS & MATH ---
