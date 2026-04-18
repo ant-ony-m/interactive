@@ -169,6 +169,32 @@ function drawCalibration(ctx) {
     }
 }
 
+function resetCalibration() {
+    // 1. Clear the calibration points array
+    srcPoints = [];
+    
+    // 2. Destroy the homography matrix to stop mapping
+    homographyMatrix = null;
+    
+    // 3. Clear player "current" positions so the markers vanish
+    p1.currentX = null; p1.currentY = null;
+    p2.currentX = null; p2.currentY = null;
+    
+    // 4. Reset the UI buttons and instructions
+    const startBtn = document.getElementById("startTrackBtn");
+    if (startBtn) startBtn.disabled = true;
+    
+    const inst = document.getElementById("instruction");
+    if (inst) inst.innerText = "Tap the 4 corners of the court";
+    
+    // 5. Clear the court heatmap canvas
+    const cCanvas = document.getElementById("courtCanvas");
+    const cCtx = cCanvas.getContext("2d");
+    cCtx.clearRect(0, 0, courtWidth, courtHeight);
+
+    console.log("Calibration reset successfully.");
+}
+
 function calculateHomography() {
     if (typeof cv === 'undefined' || !cv.matFromArray) return alert("OpenCV is still loading...");
     const srcCoords = cv.matFromArray(4, 1, cv.CV_32FC2, srcPoints);
