@@ -54,129 +54,112 @@ async function startCamera() {
 
     // --- 1. THE PERMANENT DRAWING LOOP ---
     function render() {
-        // Clear the canvas every frame
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // DRAW CALIBRATION DOTS (GOLD)
+        // Draw Gold Calibration Dots
         for (let i = 0; i < srcPoints.length / 2; i++) {
-            const x = srcPoints[i * 2];
-            const y = srcPoints[i * 2 + 1];
-            
+            const x = srcPoints[i * 2], y = srcPoints[i * 2 + 1];
             ctx.fillStyle = "gold";
-            ctx.beginPath();
-            ctx.arc(x, y, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
+            ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
             ctx.fillStyle = "white";
             ctx.font = "bold 14px Lexend";
             ctx.fillText(cornerLabels[i] || "", x + 12, y + 5);
         }
         
-        // DRAW PLAYER 1 (CYAN)
-        if (p1.currentX && p1.currentY) {
-            ctx.fillStyle = p1.color;
-            ctx.beginPath();
-            ctx.arc(p1.currentX, p1.currentY, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
-        // DRAW PLAYER 2 (PINK)
-        if (p2.currentY && p2.currentX) {
-            ctx.fillStyle = p2.color;
-            ctx.beginPath();
-            ctx.arc(p2.currentX, p2.currentY, 12, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "white";
-            ctx.lineWidth = 2;
-            ctx.stroke();
-        }
-
+        // Draw Player markers
+        [p1, p2].forEach(p => {
+            if (p.currentX && p.currentY) {
+                ctx.fillStyle = p.color;
+                ctx.beginPath(); ctx.arc(p.currentX, p.currentY, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = "white";
+                ctx.lineWidth = 2; ctx.stroke();
+            }
+        });
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 
-    // --- 2. CAMERA STARTUP ---
-    try {
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
+    // --- 2. THE CAMERA CONSTRAINT LADDER ---
+    let stream;
+    const modes = [
+        { video: { facingMode: { exact: "environment" } } }, // 1. Force Back
+        { video: { facingMode: "environment" } },           // 2. Prefer Back
+        { video: true }                                     // 3. Any Camera
+    ];
+
+    for (const mode of modes) {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia(mode);
+            if (stream) break; // If it works, stop trying
+        } catch (e) {
+            console.warn(`Camera mode failed: ${JSON.stringify(mode)}`, e);
         }
-
-        // Use 'ideal' facingMode to avoid strict hardware errors on some phones
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment", width: { ideal: 640 }, height: { ideal: 480 } }
-        });
-        
-        video.srcObject = stream;
-        video.setAttribute("playsinline", true);
-        await video.play();
-
-        // Sync sizes
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-
-        const camera = new Camera(video, {
-            onFrame: async () => {
-                await pose.send({ image: video });
-            },
-            width: video.videoWidth,
-            height: video.videoHeight
-        });
-        camera.start();
-
-    } catch (err) {
-        console.error("Camera error:", err);
-        // Secondary fallback for all devices
-        const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = fallback;
-        video.play();
     }
 
-    // --- 3. AI RESULTS ---
-    // --- 3. AI RESULTS ---
+    if (!stream) {
+        alert("Unable to access any camera. Please check permissions.");
+        return;
+    }
+
+    // --- 3. VIDEO INITIALIZATION ---
+    video.srcObject = stream;
+    video.setAttribute("playsinline", true); // CRITICAL for iOS
+    video.setAttribute("muted", true);       // Helps auto-play policy
+    
+    await video.play();
+
+    // Ensure internal resolution matches what the camera is actually sending
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const camera = new Camera(video, {
+        onFrame: async () => {
+            await pose.send({ image: video });
+        },
+        width: video.videoWidth,
+        height: video.videoHeight
+    });
+    camera.start();
+
+    // --- 4. AI RESULTS (With Typo Fixed) ---
     pose.onResults((results) => {
         if (results.poseLandmarks) {
             const landmarks = results.poseLandmarks;
-            const midX = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
-            const midY = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
+            const mx = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
+            const my = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
 
-            const d1 = Math.hypot(midX - p1.x, midY - p1.y);
-            const d2 = Math.hypot(midX - p2.x, midY - p2.y);
+            const d1 = Math.hypot(mx - p1.x, my - p1.y);
+            const d2 = Math.hypot(mx - p2.x, my - p2.y);
 
             let active = d1 < d2 ? p1 : p2;
             
-            // Fixed the variable name here:
-            active.currentX = midX;
-            active.currentY = midY; 
-            active.x = midX;
-            active.y = midY;
+            // Fix: No more 'activePlayer' typo
+            active.currentX = mx;
+            active.currentY = my;
+            active.x = mx;
+            active.y = my;
 
             if (isRecording && homographyMatrix) {
-                const courtPos = mapToCourt(midX, midY);
+                const courtPos = mapToCourt(mx, my);
                 rallyData.push({
                     player: active.label,
                     x: courtPos.x,
                     y: courtPos.y,
-                    color: active.color,
-                    time: Date.now()
+                    color: active.color
                 });
                 drawLiveAnimation(courtPos.x, courtPos.y, active.color);
             }
         }
     });
 
-    // --- 4. CLICK HANDLER ---
+    // --- 5. CALIBRATION CLICK HANDLER ---
     canvas.onclick = (e) => {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
-            // This math ensures the dot lands exactly where you touch even on mobile
-            const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
-            
-            srcPoints.push(clickX, clickY);
-
+            srcPoints.push(
+                (e.clientX - rect.left) * (canvas.width / rect.width),
+                (e.clientY - rect.top) * (canvas.height / rect.height)
+            );
             if (srcPoints.length === 8) {
                 calculateHomography();
                 const btn = document.getElementById("startTrackBtn");
