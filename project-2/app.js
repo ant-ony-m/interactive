@@ -52,73 +52,101 @@ async function startCamera() {
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // 1. Setup the Drawing Loop (Same as before)
+    // 1. RENDER LOOP (Always draw UI)
     function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        drawCalibration(ctx); // Use your existing draw function
+        
+        // Draw Gold Calibration Dots
+        for (let i = 0; i < srcPoints.length / 2; i++) {
+            const x = srcPoints[i * 2], y = srcPoints[i * 2 + 1];
+            ctx.fillStyle = "gold";
+            ctx.beginPath(); ctx.arc(x, y, 8, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "white"; ctx.font = "bold 14px Lexend";
+            ctx.fillText(cornerLabels[i] || "", x + 12, y + 5);
+        }
+
+        // Draw Player markers (if AI is seeing them)
         [p1, p2].forEach(p => {
             if (p.currentX && p.currentY) {
                 ctx.fillStyle = p.color;
-                ctx.beginPath(); ctx.arc(p.currentX, p.currentY, 15, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = "white"; ctx.lineWidth = 3; ctx.stroke();
+                ctx.beginPath(); ctx.arc(p.currentX, p.currentY, 12, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
             }
         });
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 
-    // 2. Constraints for Wide-Screen Back Camera
-    const constraints = {
-        video: {
-            facingMode: { exact: "environment" },
-            // Requesting a landscape-first resolution
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        }
-    };
-
+    // 2. FORCE BACK CAMERA
     try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        if (video.srcObject) video.srcObject.getTracks().forEach(t => t.stop());
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { exact: "environment" }, width: { ideal: 1280 }, height: { ideal: 720 } }
+        });
+        
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         await video.play();
 
-        // 3. FORCE CANVAS TO MATCH SCREEN SIZE
-        // Since object-fit: cover is used, the canvas must match the visual box
-        const resize = () => {
+        // Sync canvas resolution to the visual display size
+        const setSize = () => {
             canvas.width = video.clientWidth;
             canvas.height = video.clientHeight;
         };
-        window.addEventListener('resize', resize);
-        resize();
+        setSize();
+        window.addEventListener('resize', setSize);
 
-        // 4. Start MediaPipe
         const camera = new Camera(video, {
-            onFrame: async () => {
-                await pose.send({ image: video });
-            },
-            // On mobile, keep the processing width lower for better FPS
-            width: 640, 
-            height: 360
+            onFrame: async () => { await pose.send({ image: video }); },
+            width: 640, height: 360
         });
         camera.start();
-
     } catch (err) {
-        alert("Switch to Landscape and allow back camera access.");
+        console.warn("Back camera fail, using any:", err);
+        const fallback = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = fallback;
+        video.play();
     }
 
-    // 5. CLICK HANDLER (Match Visual Pixels)
+    // 3. AI DETECTION
+    pose.onResults((results) => {
+        if (results.poseLandmarks) {
+            const landmarks = results.poseLandmarks;
+            const mx = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
+            const my = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
+
+            const d1 = Math.hypot(mx - p1.x, my - p1.y);
+            const d2 = Math.hypot(mx - p2.x, my - p2.y);
+
+            let active = d1 < d2 ? p1 : p2;
+            
+            // Fixed the previous typo here
+            active.currentX = mx;
+            active.currentY = my;
+            active.x = mx;
+            active.y = my;
+
+            if (isRecording && homographyMatrix) {
+                const courtPos = mapToCourt(mx, my);
+                rallyData.push({ player: active.label, x: courtPos.x, y: courtPos.y, color: active.color });
+                drawLiveAnimation(courtPos.x, courtPos.y, active.color);
+            }
+        }
+    });
+
+    // 4. CALIBRATION CLICK
     canvas.onclick = (e) => {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
-            // In 'cover' mode, clientX/Y directly maps to canvas width/height
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-            
-            srcPoints.push(x, y);
+            srcPoints.push(
+                (e.clientX - rect.left) * (canvas.width / rect.width),
+                (e.clientY - rect.top) * (canvas.height / rect.height)
+            );
             if (srcPoints.length === 8) {
                 calculateHomography();
-                document.getElementById("startTrackBtn").disabled = false;
+                const btn = document.getElementById("startTrackBtn");
+                if (btn) btn.disabled = false;
             }
         }
     };
