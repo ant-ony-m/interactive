@@ -47,40 +47,33 @@ pose.setOptions({
 });
 
 // --- CAMERA & TRACKING ---
-// --- UPDATED TRACKING & DRAWING ---
 async function startCamera() {
     const video = document.getElementById("cameraFeed");
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
 
-    // 1. SET UP THE PERMANENT DRAWING LOOP
-    // This runs independently of the AI so dots NEVER disappear
-    function mainLoop() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Always draw calibration dots
-        drawCalibration(ctx);
-        
-        // Draw the player marker if we have current data
-        if (p1.currentX && p1.currentY) {
-            drawPlayerMarker(ctx, p1);
+    // 1. Force BACK camera with 'exact'
+    const constraints = {
+        video: {
+            facingMode: { exact: "environment" },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
         }
-        if (p2.currentX && p2.currentY) {
-            drawPlayerMarker(ctx, p2);
-        }
+    };
 
-        requestAnimationFrame(mainLoop);
-    }
-    requestAnimationFrame(mainLoop);
-
-    // 2. START CAMERA
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: "environment", width: 640, height: 480 } 
-        });
+        // Kill any existing streams first
+        if (video.srcObject) {
+            video.srcObject.getTracks().forEach(track => track.stop());
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
-        await video.play();
         
+        // Mobile browsers need this to actually show the frames
+        video.setAttribute("playsinline", true); 
+        await video.play();
+
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
@@ -92,57 +85,22 @@ async function startCamera() {
             height: video.videoHeight
         });
         camera.start();
+
     } catch (err) {
-        console.error("Camera failed:", err);
+        console.warn("Exact environment failed, trying 'ideal' fallback...", err);
+        // Fallback if 'exact' is too strict for certain hardware
+        try {
+            const fallbackStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+            video.srcObject = fallbackStream;
+            await video.play();
+        } catch (e) {
+            alert("Could not access back camera. Please check browser permissions.");
+        }
     }
-
-    // 3. AI LOGIC (Updates data, doesn't handle drawing)
-    pose.onResults((results) => {
-        if (results.poseLandmarks) {
-            const landmarks = results.poseLandmarks;
-            const midX = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
-            const midY = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
-
-            const distP1 = Math.hypot(midX - p1.x, midY - p1.y);
-            const distP2 = Math.hypot(midX - p2.x, midY - p2.y);
-
-            let activePlayer = distP1 < distP2 ? p1 : p2;
-            
-            // Store coordinates for the mainLoop to draw
-            activePlayer.currentX = midX;
-            activePlayer.currentY = midY;
-            activePlayer.x = midX; // Update last known for distance check
-            activePlayer.y = midY;
-
-            if (isRecording && homographyMatrix) {
-                const courtPos = mapToCourt(midX, midY);
-                rallyData.push({
-                    player: activePlayer.label,
-                    x: courtPos.x,
-                    y: courtPos.y,
-                    color: activePlayer.color,
-                    time: Date.now()
-                });
-                drawLiveAnimation(courtPos.x, courtPos.y, activePlayer.color);
-            }
-        }
-    });
-
-    // 4. CLICK HANDLER
-    canvas.onclick = (e) => {
-        if (srcPoints.length < 8) {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX - rect.left) * (canvas.width / rect.width);
-            const y = (e.clientY - rect.top) * (canvas.height / rect.height);
-            srcPoints.push(x, y);
-            console.log("Point added:", x, y); // Check console on phone if possible
-            
-            if (srcPoints.length === 8) {
-                calculateHomography();
-                document.getElementById("startTrackBtn").disabled = false;
-            }
-        }
-    };
+    
+    // ... rest of your mainLoop and onResults logic ...
 }
 
 // Helper to keep drawing clean
