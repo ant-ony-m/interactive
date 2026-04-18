@@ -64,6 +64,18 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
   z-index: 5;
   pointer-events: auto; /* Ensures you can click it */
 }
+
+#camera.active {
+    display: flex;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #000;
+}
+
 .camera-controls { position: absolute; bottom: 20px; width: 100%; text-align: center; z-index: 10; background: rgba(0,0,0,0.6); padding: 10px 0; }
 
 /* ANIMATION SCREEN */

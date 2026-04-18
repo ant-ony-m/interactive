@@ -51,12 +51,11 @@ async function startCamera() {
     const video = document.getElementById("cameraFeed");
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
+    const cameraContainer = document.getElementById("camera"); // The screen div
 
-    // 1. PERMANENT RENDER LOOP
+    // --- 1. THE PERMANENT RENDER LOOP ---
     function render() {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw Gold Calibration Dots
         for (let i = 0; i < srcPoints.length / 2; i++) {
             const x = srcPoints[i * 2], y = srcPoints[i * 2 + 1];
             ctx.fillStyle = "gold";
@@ -65,112 +64,93 @@ async function startCamera() {
             ctx.font = "bold 14px Lexend";
             ctx.fillText(cornerLabels[i] || "", x + 12, y + 5);
         }
-        
-        // Draw Player markers
         [p1, p2].forEach(p => {
             if (p.currentX && p.currentY) {
                 ctx.fillStyle = p.color;
                 ctx.beginPath(); ctx.arc(p.currentX, p.currentY, 12, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = "white";
-                ctx.lineWidth = 2; ctx.stroke();
+                ctx.strokeStyle = "white"; ctx.lineWidth = 2; ctx.stroke();
             }
         });
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
 
-    // 2. HARD-FORCE BACK CAMERA & 16:9 RATIO
+    // --- 2. FORCE FULLSCREEN & LANDSCAPE ---
+    try {
+        if (cameraContainer.requestFullscreen) {
+            cameraContainer.requestFullscreen();
+        } else if (cameraContainer.webkitRequestFullscreen) {
+            cameraContainer.webkitRequestFullscreen(); // iOS/Safari fallback
+        }
+        // Attempt to lock orientation to landscape
+        if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock("landscape").catch(err => console.log("Orientation lock ignored"));
+        }
+    } catch (e) {
+        console.log("Fullscreen/Lock not supported");
+    }
+
+    // --- 3. FORCE BACK CAMERA (16:9) ---
     const constraints = {
         video: {
             facingMode: { exact: "environment" },
-            // Most phone back cameras are optimized for 1280x720 (16:9)
             width: { ideal: 1280 },
             height: { ideal: 720 }
         }
     };
 
     try {
-        if (video.srcObject) {
-            video.srcObject.getTracks().forEach(track => track.stop());
-        }
-
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         video.srcObject = stream;
         video.setAttribute("playsinline", true);
         video.muted = true;
         await video.play();
 
-        // 3. AUTO-ADAPT CANVAS TO VIDEO RATIO
-        // This ensures your taps and the AI tracking match the pixels perfectly
-        const setCanvasSize = () => {
+        // Match canvas to video size
+        const setSize = () => {
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
         };
-        setCanvasSize();
-        // Re-check size if the phone orientation changes
-        window.addEventListener('resize', setCanvasSize);
+        setSize();
+        window.addEventListener('resize', setSize);
 
         const camera = new Camera(video, {
-            onFrame: async () => {
-                await pose.send({ image: video });
-            },
-            width: video.videoWidth,
-            height: video.videoHeight
+            onFrame: async () => { await pose.send({ image: video }); },
+            width: video.videoWidth, height: video.videoHeight
         });
         camera.start();
-
     } catch (err) {
-        console.warn("Back camera blocked or not found:", err);
-        alert("Please turn your phone to LANDSCAPE and ensure camera permissions are allowed.");
+        alert("Please turn your phone to LANDSCAPE and allow back camera access.");
     }
 
-    // 4. AI TRACKING (Fixed Logic)
+    // --- 4. AI & CLICKS (Scaled for Fullscreen) ---
     pose.onResults((results) => {
         if (results.poseLandmarks) {
             const landmarks = results.poseLandmarks;
             const mx = ((landmarks[27].x + landmarks[28].x) / 2) * canvas.width;
             const my = ((landmarks[27].y + landmarks[28].y) / 2) * canvas.height;
-
             const d1 = Math.hypot(mx - p1.x, my - p1.y);
             const d2 = Math.hypot(mx - p2.x, my - p2.y);
-
             let active = d1 < d2 ? p1 : p2;
-            
-            active.currentX = mx;
-            active.currentY = my;
-            active.x = mx;
-            active.y = my;
-
+            active.currentX = mx; active.currentY = my;
+            active.x = mx; active.y = my;
             if (isRecording && homographyMatrix) {
                 const courtPos = mapToCourt(mx, my);
-                rallyData.push({
-                    player: active.label,
-                    x: courtPos.x,
-                    y: courtPos.y,
-                    color: active.color
-                });
+                rallyData.push({ player: active.label, x: courtPos.x, y: courtPos.y, color: active.color });
                 drawLiveAnimation(courtPos.x, courtPos.y, active.color);
             }
         }
     });
 
-    // 5. CALIBRATION CLICK HANDLER (Scaled for Aspect Ratio)
     canvas.onclick = (e) => {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
-            // Scaling logic: converts screen-tap-pixels to video-stream-pixels
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            
-            srcPoints.push(
-                (e.clientX - rect.left) * scaleX,
-                (e.clientY - rect.top) * scaleY
-            );
-
+            srcPoints.push((e.clientX - rect.left) * scaleX, (e.clientY - rect.top) * scaleY);
             if (srcPoints.length === 8) {
                 calculateHomography();
-                const btn = document.getElementById("startTrackBtn");
-                if (btn) btn.disabled = false;
+                document.getElementById("startTrackBtn").disabled = false;
             }
         }
     };
