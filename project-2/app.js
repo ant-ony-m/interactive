@@ -135,6 +135,7 @@ async function startCamera() {
     }
 
     // --- 3. AI RESULTS ---
+    // --- 3. AI RESULTS ---
     pose.onResults((results) => {
         if (results.poseLandmarks) {
             const landmarks = results.poseLandmarks;
@@ -145,8 +146,10 @@ async function startCamera() {
             const d2 = Math.hypot(midX - p2.x, midY - p2.y);
 
             let active = d1 < d2 ? p1 : p2;
+            
+            // Fixed the variable name here:
             active.currentX = midX;
-            activePlayer.currentY = midY;
+            active.currentY = midY; 
             active.x = midX;
             active.y = midY;
 
