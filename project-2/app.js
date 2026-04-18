@@ -46,7 +46,6 @@ pose.setOptions({
 
 // --- CAMERA & TWO-PLAYER DATA COLLECTION ---
 async function startCamera() {
-    async function startCamera() {
     const video = document.getElementById("cameraFeed");
     const canvas = document.getElementById("overlayCanvas");
     const ctx = canvas.getContext("2d");
