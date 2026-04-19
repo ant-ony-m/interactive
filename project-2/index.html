@@ -9,18 +9,18 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Gruppo&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
     
-    <script src="https://docs.opencv.org/4.x/opencv.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+    <script src="https://docs.opencv.org/4.x/opencv.js" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-core"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-converter"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-webgl"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/pose-detection"></script>
 </head>
 <body>
 
     <div id="home" class="screen active">
         <section class="hero">
             <div class="hero-content">
-                <h1 class="logo">
-                    GH<img src="assets/squashball.svg" class="ball logo" alt="O">ST
-                </h1>
+                <h1 class="logo">GH<img src="assets/squashball.svg" class="ball" alt="O">ST</h1>
                 <p class="tagline">squash movement visualizer</p>
             </div>
         </section>
@@ -31,9 +31,9 @@
         </section>
 
         <section class="cta">
-            <button onclick="goToAbout()">ABOUT</button>
+            <button onclick="alert('Ghost tracks player efficiency using homography projection.')">ABOUT</button>
             <button onclick="goToCamera()">START RECORDING</button>
-            <button onclick="goToPast()">PAST RALLIES</button>
+            <button onclick="alert('Feature coming soon!')">PAST RALLIES</button>
         </section>
     </div>
 
@@ -43,7 +43,7 @@
             <canvas id="overlayCanvas"></canvas>
             
             <div class="camera-controls">
-                <p id="instruction">Click 4 corners: Front-Left, Front-Right, Back-Right, Back-Left</p>
+                <p id="instruction">Tap 4 corners: Front-L, Front-R, Back-R, Back-L</p>
                 <div class="button-group">
                     <button onclick="resetCalibration()">RESET</button>
                     <button id="startTrackBtn" onclick="startCapture()" disabled>START RECORDING</button>

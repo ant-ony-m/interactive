@@ -9,21 +9,26 @@ let homographyMatrix = null;
 
 // 1. Setup Camera with Fallback
 async function setupCamera() {
-    const constraints = {
-        video: {
-            facingMode: { ideal: "environment" }, // Try back camera
-            width: { ideal: 1280 },
-            height: { ideal: 720 }
-        }
+    // Attempt 1: Back Camera
+    const backCameraConstraints = {
+        video: { facingMode: "environment" }
     };
 
+    // Attempt 2: Just get any video (Standard Fallback)
+    const basicConstraints = { video: true };
+
     try {
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        const stream = await navigator.mediaDevices.getUserMedia(backCameraConstraints);
         video.srcObject = stream;
     } catch (e) {
-        console.warn("Back camera not found, trying front...");
-        const fallbackStream = await navigator.mediaDevices.getUserMedia({ video: true });
-        video.srcObject = fallbackStream;
+        console.warn("Environment camera failed, trying default camera...", e);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia(basicConstraints);
+            video.srcObject = stream;
+        } catch (err) {
+            console.error("No camera found at all:", err);
+            status.innerText = "Error: Camera access denied or not found.";
+        }
     }
 }
 
