@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Squash Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+</head>
+<body>
+    <div id="app">
+        <video id="webcam" autoplay playsinline></video>
+        
+        <canvas id="overlay"></canvas>
+
+        <div id="ui-layer">
+            <div id="status">Tap 4 corners of the court (Front-L, Front-R, Back-R, Back-L)</div>
+            <button id="reset-btn">Reset Calibration</button>
+        </div>
+
+        <div id="court-2d">
+            <div class="court-line front-wall"></div>
+            <div class="court-line short-line"></div>
+            <div id="p1-marker" class="player-dot"></div>
+            <div id="p2-marker" class="player-dot"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+</body>
+</html>
