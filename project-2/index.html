@@ -62,15 +62,25 @@
             <div id="editorControls" style="display:none; width: 100%; text-align: center;">
                 <input type="range" id="timeline" style="width:80%" min="0" value="0" oninput="manualSeek(this.value)">
                 
-                <div class="controls-row">
-                    <button onclick="togglePlayback()">Play/Pause</button>
-                    <input type="color" id="p1Color" title="Player 1" value="#00ffff">
-                    <input type="color" id="p2Color" title="Player 2" value="#ff00ff">
-                    <input type="color" id="courtColor" title="Court Lines" value="#ff0000">
-                    <input type="color" id="bgColor" title="Background" value="#ffffff">
+                <div class="editor-settings-row">
+                    <div class="color-pickers">
+                        <input type="color" id="p1Color" title="Player 1" value="#00ffff">
+                        <input type="color" id="p2Color" title="Player 2" value="#ff00ff">
+                        <input type="color" id="courtColor" title="Court Lines" value="#ff0000">
+                        <input type="color" id="bgColor" title="Background" value="#ffffff">
+                    </div>
+                    
+                    <label class="trail-label">
+                        <span>GHOST TRAIL</span>
+                        <input type="checkbox" id="trailToggle" onchange="drawFrame(currentTime)">
+                    </label>
                 </div>
-                
-                <button onclick="saveRallyChanges()">SAVE CHANGES</button>
+
+                <div class="button-group">
+                    <button onclick="togglePlayback()">PLAY / PAUSE</button>
+                    <button onclick="saveRallyChanges()">SAVE CHANGES</button>
+                    <button id="exportBtn" onclick="exportRallyVideo()">EXPORT VIDEO</button>
+                </div>
             </div>
 
             <button id="stopBtn" class="stop-btn" onclick="stopRecording()">STOP & SAVE</button>
@@ -85,18 +95,6 @@
                 </div>
             <button onclick="goHome()">BACK</button>
         </div>
-    </div>
-
-    <div id="editorControls" style="display:none; width: 100%; text-align: center;">
-        <input type="range" id="timeline" style="width:80%" min="0" value="0" oninput="manualSeek(this.value)">
-        <div class="controls-row">
-            <button onclick="togglePlayback()">Play/Pause</button>
-            <input type="color" id="p1Color" title="Player 1" value="#00ffff">
-            <input type="color" id="p2Color" title="Player 2" value="#ff00ff">
-            <input type="color" id="courtColor" title="Court Lines" value="#ff0000">
-            <input type="color" id="bgColor" title="Background" value="#ffffff">
-        </div>
-        <button onclick="saveRallyChanges()">SAVE CHANGES</button>
     </div>
 
     <script src="app.js"></script>

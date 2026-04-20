@@ -76,11 +76,13 @@ async function startCamera() {
         video.srcObject = fallback;
     }
 
-    async function detect() {
+        async function detect() {
         if (detector && video.readyState >= 2) {
             const poses = await detector.estimatePoses(video);
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // 1. Draw the calibration lines (the red box you tapped)
             drawCalibrationMarkers(ctx);
 
             if (poses.length > 0) {
@@ -218,10 +220,16 @@ function recordData(label, pos, color) {
     const cCanvas = document.getElementById("courtCanvas");
     const cCtx = cCanvas.getContext("2d");
 
-    // Only draw the NEW point instead of clearing everything
+    const bgCol = document.getElementById("bgColor") ? document.getElementById("bgColor").value : "#ffffff";
+    cCtx.fillStyle = bgCol + "1A"; 
+    cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
+
+    drawSquashCourt(cCtx);
+
+    cCtx.globalAlpha = 1.0;
     cCtx.fillStyle = color;
     cCtx.beginPath();
-    cCtx.arc(pos.x, pos.y, 3, 0, Math.PI * 2);
+    cCtx.arc(pos.x, pos.y, 6, 0, Math.PI * 2);
     cCtx.fill();
 }
 
@@ -353,16 +361,23 @@ function drawCalibrationMarkers(ctx) {
 // Add this helper to ensure the court is always available
 function drawSquashCourt(ctx) {
     const w = 210, h = 320;
-    // Use the color picker value if in edit mode, otherwise default yellow
-    const color = isEditing ? document.getElementById("courtColor").value : "rgb(255, 230, 0)";
+    const courtPicker = document.getElementById("courtColor");
+    const color = courtPicker ? courtPicker.value : "rgb(255, 0, 0)";
     
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, w, h); // Boundary
+    ctx.strokeRect(0, 0, w, h);
 
     const shortLineY = h * 0.55; 
-    ctx.beginPath(); ctx.moveTo(0, shortLineY); ctx.lineTo(w, shortLineY); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(w / 2, shortLineY); ctx.lineTo(w / 2, h); ctx.stroke();
+    ctx.beginPath(); 
+    ctx.moveTo(0, shortLineY); 
+    ctx.lineTo(w, shortLineY); 
+    ctx.stroke();
+
+    ctx.beginPath(); 
+    ctx.moveTo(w / 2, shortLineY); 
+    ctx.lineTo(w / 2, h); 
+    ctx.stroke();
     
     const boxSize = w / 4; 
     ctx.strokeRect(0, shortLineY, boxSize, boxSize);
@@ -472,26 +487,86 @@ function saveRallyChanges() {
 function drawFrame(targetTime) {
     const canvas = document.getElementById("courtCanvas");
     const ctx = canvas.getContext("2d");
+    const trailToggle = document.getElementById("trailToggle");
+    const showTrail = trailToggle ? trailToggle.checked : false;
     
-    // 1. Clear the canvas
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // 2. Redraw the court lines so they don't disappear
+    const bgCol = document.getElementById("bgColor") ? document.getElementById("bgColor").value : "#ffffff";
+    ctx.fillStyle = bgCol;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
     drawSquashCourt(ctx);
 
     const p1Col = document.getElementById("p1Color").value;
     const p2Col = document.getElementById("p2Color").value;
+    const trailDuration = 1500; 
 
-    // 3. Filter and Draw
-    rallyData.forEach(point => {
-        if (point.time <= targetTime) {
-            // DEBUG: If you see this in the console, the data is there but drawing is failing
-            // console.log("Drawing point at:", point.x, point.y); 
+    rallyData.forEach((point) => {
+        const timeDiff = targetTime - point.time;
 
+        if (timeDiff >= 0 && timeDiff <= trailDuration) {
             ctx.fillStyle = (point.player === "P1") ? p1Col : p2Col;
-            ctx.beginPath();
-            ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
-            ctx.fill();
+
+            if (timeDiff < 50) {
+                ctx.globalAlpha = 1.0; 
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
+                ctx.fill();
+            } 
+            else if (showTrail) {
+                const fadeScale = 1 - (timeDiff / trailDuration);
+                ctx.globalAlpha = fadeScale * 0.4; 
+                ctx.beginPath();
+                ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
+                ctx.fill();
+            }
         }
     });
+    
+    ctx.globalAlpha = 1.0; 
+}
+
+async function exportRallyVideo() {
+    const canvas = document.getElementById("courtCanvas");
+    const exportBtn = document.getElementById("exportBtn");
+    
+    let type = 'video/webm';
+    if (MediaRecorder.isTypeSupported('video/mp4')) {
+        type = 'video/mp4';
+    }
+
+    const stream = canvas.captureStream(30);
+    const recorder = new MediaRecorder(stream, { mimeType: type });
+    const chunks = [];
+
+    recorder.ondataavailable = (e) => chunks.push(e.data);
+    recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: type });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const extension = type.split('/')[1];
+        a.download = `Ghost_Rally_${Date.now()}.${extension}`;
+        a.click();
+        
+        exportBtn.innerText = "EXPORT VIDEO";
+        exportBtn.disabled = false;
+    };
+
+    exportBtn.innerText = "RECORDING...";
+    exportBtn.disabled = true;
+    
+    currentTime = 0;
+    const totalDuration = rallyData.length > 0 ? rallyData[rallyData.length - 1].time : 0;
+    
+    recorder.start();
+
+    const exportInterval = setInterval(() => {
+        currentTime += 33; 
+        drawFrame(currentTime);
+        
+        if (currentTime >= totalDuration) {
+            clearInterval(exportInterval);
+            recorder.stop();
+        }
+    }, 33);
 }
