@@ -1,5 +1,5 @@
 body {
-  margin: 0; background: black; color: white;
+  margin: 0; background: rgb(255, 255, 255); color: rgb(0, 0, 0);
   font-family: 'Gruppo', sans-serif; overflow-x: hidden;
 }
 
@@ -9,12 +9,12 @@ body {
 /* HERO */
 .hero { height: 100vh; display: flex; justify-content: center; align-items: center; }
 .hero-content { display: flex; flex-direction: column; align-items: center; }
-.logo { font-size: 5rem; color: rgb(255, 230, 0); font-family: 'Lexend', sans-serif; margin: 0; display: flex; align-items: center; }
+.logo { font-size: 5rem; color: rgb(255, 0, 0); font-family: 'Lexend', sans-serif; margin: 0; display: flex; align-items: center; }
 .tagline { font-size: 1.2rem; opacity: 0.8; }
 .ball {
   width: 50px;
   height: 50px;
-  position: relative; /* Or absolute depending on your layout */
+  position: relative; 
   transition: transform 0.1s ease-out;
   will-change: transform;
   z-index: 5;
@@ -22,7 +22,7 @@ body {
 
 /* COURT SCROLL */
 .court-section { height: 50vh; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-top: -30px;}
-/* Add/Update these in your style.css */
+
 .court { 
   width: 300px; 
   height: 450px; 
@@ -38,11 +38,14 @@ body {
 
 button {
   margin: 10px; padding: 12px 30px; font-size: 1.1rem;
-  background: transparent; border: 2px solid rgb(255, 230, 0);
-  color: rgb(255, 230, 0); font-family: 'Lexend', sans-serif;
+  background: transparent; border: 2px solid rgb(255, 0, 0);
+  color: rgb(255, 0, 0); font-family: 'Lexend', sans-serif;
   cursor: pointer; border-radius: 30px; transition: 0.3s;
 }
-button:hover { background: rgb(255, 230, 0); color: black; }
+button:hover:not(:disabled) { 
+  background: rgb(255, 0, 0); 
+  color: rgb(255, 255, 255); 
+}
 button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 
 /* CAMERA UI */
@@ -51,6 +54,16 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 #overlayCanvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
 .camera-controls { position: absolute; bottom: 0; width: 100%; text-align: center; z-index: 10; background: rgba(0,0,0,0.8); padding: 20px 0; }
 
+#instruction {
+    color: #ffffff; 
+    font-family: 'Lexend', sans-serif;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8); /* Adds a subtle glow for readability */
+}
+
 /* ANIMATION SCREEN */
 .animation-container { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-#courtCanvas { background: #000; border: 2px solid rgb(255, 230, 0); }
+#courtCanvas { background: none; border: 2px solid rgb(255, 0, 0); }
+
+/*yellow color code: "rgb(255, 229, 0)"

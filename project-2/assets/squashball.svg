@@ -1,8 +1,8 @@
 <svg viewBox="170 170 60 60" xmlns="http://www.w3.org/2000/svg">
   <!-- Outer circle -->
-  <circle cx="200" cy="197" r="25" fill="none" stroke="rgb(255, 221, 0)" stroke-width="2"></circle>
+  <circle cx="200" cy="197" r="25" fill="none" stroke="rgb(255, 0, 0)" stroke-width="2"></circle>
 
   <!-- Small filled circles -->
-  <circle cx="200" cy="185" r="2.5" fill="gold"></circle>
-  <circle cx="190" cy="190" r="2.5" fill="gold"></circle>
+  <circle cx="200" cy="185" r="2.5" fill="red"></circle>
+  <circle cx="190" cy="190" r="2.5" fill="red"></circle>
 </svg>
