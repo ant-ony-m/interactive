@@ -83,7 +83,7 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     z-index: 20;
     
     /* Widened for button fit */
-    width: 40%; 
+    width: 50%; 
     max-width: 90vw;
     padding: 5px;
     
