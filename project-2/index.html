@@ -121,12 +121,12 @@
                     <p class = "logo";>HOW TO USE</p>
                 </div>
                 <div class="step">
-                    <img src="step3.png" alt="Step 3" loading="eager">
+                    <img>
                     <p><b>SET UP</b> your phone in a stable position that has the whole court in frame.</p>
                 </div>
 
                 <div class="step">
-                    <img src="step3.png" alt="Step 3" loading="eager">
+                    <img src="assets/camera-calibration.png" alt="Step 3" loading="eager">
                     <p><b>COURT CALIBRATION: </b>Before the AI can track you, it needs to understand the "plane" of the floor. You must define the boundaries by tapping the four corners of the court on your screen in this specific order:</p>
                     <ol style="text-align: left; display: inline-block; font-family: 'Lexend'; font-size: 14px;">
                         <li>Front-Left (where the side wall meets the tin)</li>
@@ -137,17 +137,17 @@
                 </div>
 
                 <div class="step">
-                    <img src="assets/recording_ui.png" alt="Recording" loading="eager">
+                    <img>
                     <p><b>RECORDING:</b> Once calibrated, the AI locks onto your ankles or hips. Hit <b>START RECORDING</b> and begin your rally or ghosting drill.</p>
                 </div>
 
                 <div class="step">
-                    <img src="step3.png" alt="Step 3">
+                    <img src="assets/stop-and-save.png" alt="Step 3">
                     <p>The system tracks your X/Y coordinates in real-time. When finished, hit <b>STOP & SAVE</b> and name your session.</p>
                 </div>
 
                 <div class="step">
-                    <img src="assets/analysis_view.png" alt="Analysis" loading="eager">
+                    <img src="assets/rally-edit.png" alt="Analysis" loading="eager">
                     <p><b>ANALYZE & EXPORT:</b> Visit <b>PAST RALLIES</b> to review your movement patterns. Toggle the <b>GHOST TRAIL</b> to see your recovery speed and T-occupancy.</p>
                     <p>Use <b>EXPORT VIDEO</b> to save a clean, background-free animation of your movement to share with coaches or on social media.</p>
                 </div>
@@ -163,6 +163,11 @@
                 <button class="nav-arrow" onclick="moveStep(1)">&#10095;</button>
             </div>
         </div>
+    </div>
+
+    <div id="landscapeWarning" class="landscape-warning">
+        <div class="icon">🔄</div>
+        <p>ROTATE PHONE FOR OPTIMIZATION</p>
     </div>
 
     <script src="app.js"></script>

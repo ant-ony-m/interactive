@@ -126,10 +126,21 @@ async function startCamera() {
         const labels = ["Front Left", "Front Right", "Back Right", "Back Left"];
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
-            srcPoints.push((e.clientX - rect.left) * (canvas.width / rect.width), (e.clientY - rect.top) * (canvas.height / rect.height));
+            
+            // Calculate the ratio between actual canvas pixels and displayed size
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+
+            // Get the touch/click relative to the top-left of the canvas
+            const x = (e.clientX - rect.left) * scaleX;
+            const y = (e.clientY - rect.top) * scaleY;
+
+            srcPoints.push(x, y);
+            
             const nextIdx = srcPoints.length / 2;
-            if (nextIdx < 4) { document.getElementById("instruction").innerText = `Tap: ${labels[nextIdx]}`; }
-            else {
+            if (nextIdx < 4) { 
+                document.getElementById("instruction").innerText = `Tap: ${labels[nextIdx]}`; 
+            } else {
                 calculateHomography();
                 document.getElementById("startTrackBtn").disabled = false;
                 document.getElementById("instruction").innerText = "CALIBRATION COMPLETE!";

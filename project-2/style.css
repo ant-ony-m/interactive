@@ -385,3 +385,68 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     67% { opacity: 1; transform: translateY(40px); }
     100% { opacity: 0; transform: translateY(55px) scale3d(0.5, 0.5, 0.5); }
 }
+
+/* This applies to the Camera UI and the Edit/Recording screen UI */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+    /* 1. Make the control boxes smaller and wider to fit the short height */
+    .camera-controls, .animation-container {
+        padding: 8px 15px !important;
+        width: 90% !important;
+        max-width: 500px !important;
+        bottom: 5px !important;
+    }
+
+    /* 2. Shrink the instruction text */
+    #instruction {
+        font-size: 0.85rem !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* 3. Scale down the buttons so they stay in one row */
+    .button-group {
+        gap: 5px !important;
+    }
+
+    .button-group button {
+        padding: 6px 10px !important;
+        font-size: 0.75rem !important;
+        height: auto !important;
+    }
+
+    /* 4. Ensure the canvas doesn't get pushed off screen */
+    #courtCanvas {
+        height: 60vh !important; /* Scale down visual height of court */
+        width: auto !important;
+    }
+}
+
+.landscape-warning {
+    display: none; /* Hidden by default */
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 100;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-family: 'Lexend';
+}
+
+/* Show only when on the camera screen AND phone is portrait */
+@media screen and (orientation: portrait) {
+    #camera.active .landscape-warning {
+        display: flex;
+    }
+}
+
+.landscape-warning .icon {
+    font-size: 3rem;
+    animation: rotateIcon 2s infinite;
+}
+
+@keyframes rotateIcon {
+    0% { transform: rotate(0deg); }
+    50% { transform: rotate(90deg); }
+    100% { transform: rotate(0deg); }
+}
