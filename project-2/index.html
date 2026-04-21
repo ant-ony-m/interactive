@@ -23,6 +23,12 @@
                 <h1 class="logo">GH<img src="assets/squashball.svg" class="ball" alt="O">ST</h1>
                 <p class="tagline">squash movement visualizer</p>
             </div>
+
+            <div class="scroll-arrow" id="scrollArrow">
+                <div class="chevron"></div>
+                <div class="chevron"></div>
+                <div class="chevron"></div>
+            </div>
         </section>
 
         <section class="court-section">
@@ -43,7 +49,7 @@
             <canvas id="overlayCanvas"></canvas>
             
             <div class="camera-controls">
-                <p id="instruction">Tap 4 corners: Front-L, Front-R, Back-R, Back-L</p>
+                <p id="instruction">Tap: Front-Left</p>
                 <div class="button-group">
                     <button onclick="resetCalibration()">RESET</button>
                     <button id="startTrackBtn" onclick="startCapture()" disabled>START RECORDING</button>

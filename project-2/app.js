@@ -26,6 +26,7 @@ function goHome() { location.reload(); }
 
 function goToCamera() {
     showScreen("camera");
+    lockLandscape(); // Attempt to lock
     initTensorFlow().then(() => startCamera());
 }
 
@@ -33,6 +34,7 @@ function goToCamera() {
 function initScrollAnimations() {
     const ball = document.querySelector(".ball");
     const cta = document.querySelector(".cta");
+    const arrow = document.getElementById("scrollArrow");
 
     window.addEventListener("scroll", () => {
         const scrollVal = window.scrollY;
@@ -562,3 +564,15 @@ function resetCalibration() {
         instruction.style.color = "#ffffff"; 
     }
 }
+
+async function lockLandscape() {
+    try {
+        if (screen.orientation && screen.orientation.lock) {
+            await screen.orientation.lock("landscape");
+        }
+    } catch (e) {
+        console.warn("Landscape lock not supported on this browser (common on iOS Safari). Please rotate your phone manually!");
+    }
+}
+
+// Update your existing goToCamera to include this

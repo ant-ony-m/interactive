@@ -216,7 +216,7 @@ function resetCalibration() {
     srcPoints = [];
     homographyMatrix = null;
     document.getElementById("startTrackBtn").disabled = true;
-    document.getElementById("instruction").innerText = "Tap 4 corners: Front-L, Front-R, Back-R, Back-L";
+    document.getElementById("instruction").innerText = "Tap: Front Left Corner;
 }
 
 function startCapture() { 

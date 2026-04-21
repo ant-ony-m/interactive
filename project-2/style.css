@@ -88,7 +88,7 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     padding: 5px;
     
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     text-align: center; 
 
@@ -302,4 +302,74 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 /* 4. Color the part of the track the user has already passed (Chrome/Safari) */
 #timeline {
     cursor: pointer;
+}
+
+.scroll-arrow {
+    position: absolute;
+    bottom: 100px; /* Distance from bottom of screen */
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100px;
+    height: auto;
+    cursor: pointer;
+    z-index: 10;
+    
+    /* Animation settings */
+    transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.scroll-arrow .chevron {
+    position: absolute;
+    width: 28px;
+    height: 8px;
+    opacity: 0;
+    transform: scale3d(0.5, 0.5, 0.5);
+    animation: move-chevron 3s ease-out infinite;
+}
+
+.scroll-arrow .chevron:first-child { animation-delay: 1s; }
+.scroll-arrow .chevron:nth-child(2) { animation-delay: 2s; }
+
+.scroll-arrow .chevron:before,
+.scroll-arrow .chevron:after {
+    content: ' ';
+    position: absolute;
+    top: 0;
+    height: 100%;
+    width: 51%;
+    background: #ff0000; /* Match your Ghost Red */
+}
+
+.scroll-arrow .chevron:before {
+    left: 0;
+    transform: skew(0deg, 30deg);
+}
+
+.scroll-arrow .chevron:after {
+    right: 0;
+    width: 50%;
+    transform: skew(0deg, -30deg);
+}
+
+.scroll-arrow .text {
+    display: block;
+    margin-top: 50px;
+    font-family: 'Gruppo', sans-serif;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    white-space: nowrap;
+    opacity: 0.8;
+    color: #ff0000;
+}
+
+/* Shine/Move Animation for the Chevrons */
+@keyframes move-chevron {
+    25% { opacity: 1; }
+    33% { opacity: 1; transform: translateY(30px); }
+    67% { opacity: 1; transform: translateY(40px); }
+    100% { opacity: 0; transform: translateY(55px) scale3d(0.5, 0.5, 0.5); }
 }
