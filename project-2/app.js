@@ -16,7 +16,6 @@ let currentStep = 0;
 const SMOOTHING_FACTOR = 0.2; 
 const courtWidth = 210, courtHeight = 320;
 
-// --- NAVIGATION & SCREENS ---
 function showScreen(id) {
     document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
@@ -26,11 +25,10 @@ function goHome() { location.reload(); }
 
 function goToCamera() {
     showScreen("camera");
-    lockLandscape(); // Attempt to lock
+    lockLandscape(); 
     initTensorFlow().then(() => startCamera());
 }
 
-// --- RESTORED SCROLL LOGIC ---
 function initScrollAnimations() {
     const ball = document.querySelector(".ball");
     const cta = document.querySelector(".cta");
@@ -127,11 +125,9 @@ async function startCamera() {
         if (srcPoints.length < 8) {
             const rect = canvas.getBoundingClientRect();
             
-            // Calculate the ratio between actual canvas pixels and displayed size
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
 
-            // Get the touch/click relative to the top-left of the canvas
             const x = (e.clientX - rect.left) * scaleX;
             const y = (e.clientY - rect.top) * scaleY;
 
@@ -211,6 +207,67 @@ function startCapture() {
     document.getElementById("stopBtn").style.display = "block";
 }
 
+function drawCalibrationMarkers(ctx) {
+    const labels = ["Front Left", "Front Right", "Back Right", "Back Left"];
+    if (srcPoints.length === 0) return;
+
+
+    ctx.strokeStyle = "rgb(255, 0, 0)";
+    ctx.lineWidth = 4;
+    ctx.setLineDash([10, 5]); 
+
+    ctx.beginPath();
+    for (let i = 0; i < srcPoints.length / 2; i++) {
+        const x = srcPoints[i * 2];
+        const y = srcPoints[i * 2 + 1];
+        
+        if (i === 0) {
+            ctx.moveTo(x, y);
+        } else {
+            ctx.lineTo(x, y);
+        }
+    }
+
+  
+    if (srcPoints.length === 8) {
+        ctx.lineTo(srcPoints[0], srcPoints[1]);
+        ctx.fillStyle = "rgba(255, 0, 0, 0.2)"; 
+        ctx.fill();
+    }
+    ctx.stroke();
+    ctx.setLineDash([]); 
+    for (let i = 0; i < srcPoints.length / 2; i++) {
+        const x = srcPoints[i * 2];
+        const y = srcPoints[i * 2 + 1];
+
+        ctx.fillStyle = "rgb(255, 0, 0)";
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 4;
+        ctx.shadowColor = "black";
+        ctx.fillStyle = "white";
+        ctx.font = "12px Lexend"; 
+        ctx.fillText(labels[i], x + 15, y - 15);
+        ctx.shadowBlur = 0; 
+    }
+}
+
+function resetCalibration() {
+    srcPoints = [];
+    homographyMatrix = null;
+
+    const startBtn = document.getElementById("startTrackBtn");
+    if (startBtn) startBtn.disabled = true;
+
+    const instruction = document.getElementById("instruction");
+    if (instruction) {
+        instruction.innerText = "Tap: Front Left";
+        instruction.style.color = "#ffffff"; 
+    }
+}
+
 function stopRecording() { 
     isRecording = false; 
     const name = prompt("Name this rally:", `Rally ${new Date().toLocaleTimeString()}`);
@@ -242,23 +299,19 @@ function showPastRallies() {
         const div = document.createElement("div");
         div.style = "display: flex; gap: 10px; margin-bottom: 10px; width: 100%; align-items: stretch;";
         
-        // 1. Play Button (Main Button)
         const playBtn = document.createElement("button");
         playBtn.style = "flex: 1; text-align: left; align-items: center; padding: 15px;";
         playBtn.innerHTML = `<br> <strong style="color: #ff0000;">${r.name}</strong> <br> <small style="color: #000000;">${r.date}</small>`;
         playBtn.onclick = () => playbackRallyByIndex(i);
 
-        // 2. Rename Button (Pencil)
         const renameBtn = document.createElement("button");
         renameBtn.innerHTML = "✎";
-        // Matching your Ghost style: Transparent with a border
         renameBtn.style = "background: transparent; border: 1px solid #ff0000; color: #ff0000; height: 45px; width: 45px; display: flex; justify-content: center; align-items: center; padding: 0;";
         renameBtn.onclick = (e) => {
             e.stopPropagation();
             renameRally(i);
         };
 
-        // 3. Delete Button (X)
         const delBtn = document.createElement("button");
         delBtn.innerHTML = "X";
         delBtn.style = "background: transparent; border: 1px solid #ff0000; color: #ff0000; height: 45px; width: 45px; display: flex; justify-content: center; align-items: center; padding: 0;";
@@ -283,7 +336,6 @@ function renameRally(index) {
         rallies[index].name = newName.trim();
         localStorage.setItem("ghost_rallies", JSON.stringify(rallies));
         
-        // Refresh the list and update the editor header if it's currently open
         showPastRallies();
         
         const header = document.getElementById("editorHeader");
@@ -293,7 +345,6 @@ function renameRally(index) {
     }
 }
 
-// Helper to prevent JSON stringify issues in HTML attributes
 function playbackRallyByIndex(index) {
     const rallies = JSON.parse(localStorage.getItem("ghost_rallies") || "[]");
     playbackRally(rallies[index]);
@@ -305,59 +356,16 @@ function playbackRally(savedRally) {
     isRecording = false;
     activeRallyId = savedRally.id;
     
-    // Safety check for data
-    rallyData = savedRally.data || []; 
-
-    // Update Header
-    const header = document.getElementById("editorHeader");
-    if (header) header.innerText = savedRally.name;
-
-    // Show/Hide appropriate UI
-    document.getElementById("editorControls").style.display = "block";
-    document.getElementById("stopBtn").style.display = "none";
-
-    // Restore Settings
-    const s = savedRally.settings || { p1Color: "#00ffff", p2Color: "#ff00ff", courtColor: "#ff0000", bgColor: "#ffffff", trail: true };
-    document.getElementById("p1Color").value = s.p1Color;
-    document.getElementById("p2Color").value = s.p2Color;
-    document.getElementById("courtColor").value = s.courtColor;
-    document.getElementById("bgColor").value = s.bgColor;
-    document.getElementById("trailToggle").checked = s.trail;
-
-    // Timeline Setup
-    const timeline = document.getElementById("timeline");
-    if (rallyData.length > 0) {
-        const lastTimestamp = rallyData[rallyData.length - 1].time;
-        timeline.max = lastTimestamp;
-        timeline.value = 0;
-        currentTime = 0;
-    } else {
-        timeline.max = 0;
-    }
-
-    // DRAW IMMEDIATELY so the court isn't blank
-    drawFrame(0);
-}
-
-function playbackRally(savedRally) {
-    showScreen("edit");
-    isEditing = true;
-    isRecording = false;
-    activeRallyId = savedRally.id;
-    
     rallyData = JSON.parse(JSON.stringify(savedRally.data)); 
 
-    // Header now matches HTML ID
     const header = document.getElementById("editorHeader");
     if (header) header.innerText = savedRally.name;
 
-    // Toggle Buttons
     document.getElementById("editorControls").style.display = "block";
     const backBtn = document.getElementById("editorBackButton");
     if (backBtn) backBtn.style.display = "block";
     document.getElementById("stopBtn").style.display = "none";
 
-    // Restore Settings
     const s = savedRally.settings || { p1Color: "#00ffff", p2Color: "#ff00ff", courtColor: "#ff0000", bgColor: "#ffffff", trail: true };
     document.getElementById("p1Color").value = s.p1Color;
     document.getElementById("p2Color").value = s.p2Color;
@@ -365,7 +373,6 @@ function playbackRally(savedRally) {
     document.getElementById("bgColor").value = s.bgColor;
     document.getElementById("trailToggle").checked = s.trail;
 
-    // Timeline Setup
     const timeline = document.getElementById("timeline");
     if (rallyData.length > 0) {
         const lastTimestamp = rallyData[rallyData.length - 1].time;
@@ -373,8 +380,6 @@ function playbackRally(savedRally) {
         timeline.value = 0;
         currentTime = 0;
     }
-
-    // DRAW IMMEDIATELY
     drawFrame(0);
 }
 
@@ -394,7 +399,8 @@ function saveRallyChanges() {
     }
 }
 
-// --- RESTORED MODAL/ABOUT LOGIC ---
+//INSTRUCTIONS MODAL
+
 function goToAbout() {
     const modal = document.getElementById("aboutModal");
     const steps = document.querySelectorAll(".step");
@@ -402,7 +408,6 @@ function goToAbout() {
     
     modal.style.display = "flex";
 
-    // 1. Clear existing dots and generate new ones based on step count
     dotContainer.innerHTML = ""; 
     steps.forEach((_, i) => {
         const dot = document.createElement("span");
@@ -411,20 +416,18 @@ function goToAbout() {
         dotContainer.appendChild(dot);
     });
 
-    setStep(0); // Always start at the first step
+    setStep(0); 
 }
 
 function setStep(n) {
     const steps = document.querySelectorAll(".step");
     const dots = document.querySelectorAll(".dot");
 
-    // 2. Wrap around logic (prevents breaking at the end)
     if (n >= steps.length) n = 0;
     if (n < 0) n = steps.length - 1;
     
     currentStep = n;
 
-    // 3. Update visibility
     steps.forEach((s, i) => s.classList.toggle("active", i === n));
     dots.forEach((d, i) => d.classList.toggle("active", i === n));
 }
@@ -436,21 +439,19 @@ function moveStep(d) {
 function closeAbout() { document.getElementById("aboutModal").style.display = "none"; }
 
 
-// --- RESTORED VIDEO EXPORT ---
 async function exportRallyVideo() {
     const canvas = document.getElementById("courtCanvas");
     const exportBtn = document.getElementById("exportBtn");
     
-    // 1. Determine supported format (Prefer MP4)
     let mimeType = 'video/mp4';
     if (!MediaRecorder.isTypeSupported(mimeType)) {
         mimeType = 'video/webm'; 
     }
 
-    const stream = canvas.captureStream(30); // 30 FPS
+    const stream = canvas.captureStream(30); 
     const recorder = new MediaRecorder(stream, { 
         mimeType: mimeType,
-        videoBitsPerSecond: 2500000 // High quality 2.5Mbps
+        videoBitsPerSecond: 2500000 
     });
     
     const chunks = [];
@@ -470,23 +471,21 @@ async function exportRallyVideo() {
         exportBtn.disabled = false;
     };
 
-    // 2. UI Feedback
     exportBtn.innerText = "RECORDING...";
     exportBtn.disabled = true;
     
-    // 3. Start high-speed render loop
     currentTime = 0;
     const totalDuration = rallyData.length > 0 ? rallyData[rallyData.length - 1].time : 0;
     
     recorder.start();
 
     const exportInterval = setInterval(() => {
-        currentTime += 33; // Frame increment for 30fps
+        currentTime += 33; 
         drawFrame(currentTime);
         
         if (currentTime >= totalDuration) {
             clearInterval(exportInterval);
-            setTimeout(() => recorder.stop(), 500); // Small buffer to catch the last frame
+            setTimeout(() => recorder.stop(), 500); 
         }
     }, 33);
 }
@@ -495,21 +494,17 @@ function drawFrame(targetTime) {
     const canvas = document.getElementById("courtCanvas");
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
-    
-    // Grab current UI colors
+
     const bgCol = document.getElementById("bgColor").value;
     const p1Col = document.getElementById("p1Color").value;
     const p2Col = document.getElementById("p2Color").value;
     const showTrail = document.getElementById("trailToggle").checked;
     
-    // 1. Always Draw Background
     ctx.fillStyle = bgCol;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // 2. Always Draw Court Lines
     drawSquashCourt(ctx);
 
-    // 3. Draw dots if data exists
     if (!rallyData || rallyData.length === 0) return;
 
     const trailDuration = 1500; 
@@ -520,13 +515,13 @@ function drawFrame(targetTime) {
         if (timeDiff >= 0 && timeDiff <= trailDuration) {
             ctx.fillStyle = (point.player === "P1") ? p1Col : p2Col;
 
-            if (timeDiff < 50) { // Active player position
+            if (timeDiff < 50) {
                 ctx.globalAlpha = 1.0; 
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, 6, 0, Math.PI * 2);
                 ctx.fill();
             } 
-            else if (showTrail) { // Fading trail
+            else if (showTrail) { 
                 const fadeScale = 1 - (timeDiff / trailDuration);
                 ctx.globalAlpha = fadeScale * 0.4; 
                 ctx.beginPath();
@@ -548,20 +543,17 @@ function togglePlayback() {
     playBtn.innerText = isPaused ? "Play" : "Pause";
 
     if (!isPaused) {
-        // If the slider is at the end, reset to start
         if (currentTime >= parseInt(timeline.max)) {
             currentTime = 0;
         }
 
         playbackInterval = setInterval(() => {
-            currentTime += 50; // Step by 50ms
+            currentTime += 50; 
             
-            // Sync the slider position to the current playback time
             timeline.value = currentTime;
             
             drawFrame(currentTime);
 
-            // Stop logic
             if (currentTime >= parseInt(timeline.max)) {
                 clearInterval(playbackInterval);
                 isPaused = true;
@@ -573,72 +565,7 @@ function togglePlayback() {
     }
 }
 
-function drawCalibrationMarkers(ctx) {
-    const labels = ["Front Left", "Front Right", "Back Right", "Back Left"];
-    if (srcPoints.length === 0) return;
 
-    // 1. Set styles for the connecting lines
-    ctx.strokeStyle = "rgb(255, 0, 0)";
-    ctx.lineWidth = 4;
-    ctx.setLineDash([10, 5]); // The "Dashed" look
-
-    // 2. Trace the shape
-    ctx.beginPath();
-    for (let i = 0; i < srcPoints.length / 2; i++) {
-        const x = srcPoints[i * 2];
-        const y = srcPoints[i * 2 + 1];
-        
-        if (i === 0) {
-            ctx.moveTo(x, y);
-        } else {
-            ctx.lineTo(x, y);
-        }
-    }
-
-    // 3. Close the box and fill it if 4 points are set
-    if (srcPoints.length === 8) {
-        ctx.lineTo(srcPoints[0], srcPoints[1]);
-        ctx.fillStyle = "rgba(255, 0, 0, 0.2)"; // Ghostly red fill
-        ctx.fill();
-    }
-    ctx.stroke();
-    ctx.setLineDash([]); // Reset dash so dots are solid
-
-    // 4. Draw individual points and labels
-    for (let i = 0; i < srcPoints.length / 2; i++) {
-        const x = srcPoints[i * 2];
-        const y = srcPoints[i * 2 + 1];
-
-        // The Dot
-        ctx.fillStyle = "rgb(255, 0, 0)";
-        ctx.beginPath();
-        ctx.arc(x, y, 5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // The Text Label (with shadow for visibility)
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = "black";
-        ctx.fillStyle = "white";
-        ctx.font = "12px Lexend"; 
-        ctx.fillText(labels[i], x + 15, y - 15);
-        ctx.shadowBlur = 0; 
-    }
-}
-
-function resetCalibration() {
-    srcPoints = [];
-    homographyMatrix = null;
-
-    // Reset UI button and instruction text
-    const startBtn = document.getElementById("startTrackBtn");
-    if (startBtn) startBtn.disabled = true;
-
-    const instruction = document.getElementById("instruction");
-    if (instruction) {
-        instruction.innerText = "Tap: Front Left";
-        instruction.style.color = "#ffffff"; 
-    }
-}
 
 async function lockLandscape() {
     try {
@@ -649,5 +576,3 @@ async function lockLandscape() {
         console.warn("Landscape lock not supported on this browser (common on iOS Safari). Please rotate your phone manually!");
     }
 }
-
-// Update your existing goToCamera to include this
