@@ -351,15 +351,46 @@ function saveRallyChanges() {
 }
 
 // --- RESTORED MODAL/ABOUT LOGIC ---
-function goToAbout() { document.getElementById("aboutModal").style.display = "flex"; setStep(0); }
-function closeAbout() { document.getElementById("aboutModal").style.display = "none"; }
+function goToAbout() {
+    const modal = document.getElementById("aboutModal");
+    const steps = document.querySelectorAll(".step");
+    const dotContainer = document.getElementById("dotContainer");
+    
+    modal.style.display = "flex";
+
+    // 1. Clear existing dots and generate new ones based on step count
+    dotContainer.innerHTML = ""; 
+    steps.forEach((_, i) => {
+        const dot = document.createElement("span");
+        dot.className = "dot";
+        dot.onclick = () => setStep(i);
+        dotContainer.appendChild(dot);
+    });
+
+    setStep(0); // Always start at the first step
+}
+
 function setStep(n) {
-    const steps = document.querySelectorAll(".step"), dots = document.querySelectorAll(".dot");
+    const steps = document.querySelectorAll(".step");
+    const dots = document.querySelectorAll(".dot");
+
+    // 2. Wrap around logic (prevents breaking at the end)
+    if (n >= steps.length) n = 0;
+    if (n < 0) n = steps.length - 1;
+    
     currentStep = n;
+
+    // 3. Update visibility
     steps.forEach((s, i) => s.classList.toggle("active", i === n));
     dots.forEach((d, i) => d.classList.toggle("active", i === n));
 }
-function moveStep(d) { setStep(currentStep + d); }
+
+function moveStep(d) {
+    setStep(currentStep + d);
+}
+
+function closeAbout() { document.getElementById("aboutModal").style.display = "none"; }
+
 
 // --- RESTORED VIDEO EXPORT ---
 async function exportRallyVideo() {
