@@ -76,13 +76,11 @@ async function startCamera() {
         video.srcObject = fallback;
     }
 
-        async function detect() {
+    async function detect() {
         if (detector && video.readyState >= 2) {
             const poses = await detector.estimatePoses(video);
             
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 1. Draw the calibration lines (the red box you tapped)
             drawCalibrationMarkers(ctx);
 
             if (poses.length > 0) {
@@ -209,23 +207,20 @@ function recordData(label, pos, color) {
     if (!isRecording) return;
     
     const timeOffset = Date.now() - startTime;
-    rallyData.push({ 
-        x: pos.x, 
-        y: pos.y, 
-        color: color, 
-        time: timeOffset, 
-        player: label 
-    });
+    rallyData.push({ x: pos.x, y: pos.y, color: color, time: timeOffset, player: label });
 
     const cCanvas = document.getElementById("courtCanvas");
     const cCtx = cCanvas.getContext("2d");
 
-    const bgCol = document.getElementById("bgColor") ? document.getElementById("bgColor").value : "#ffffff";
-    cCtx.fillStyle = bgCol + "1A"; 
+    // 1. Draw a very faint overlay of the background color to fade the past
+    const bgCol = document.getElementById("bgColor").value;
+    cCtx.fillStyle = bgCol + "1A"; // '1A' is roughly 10% opacity in hex
     cCtx.fillRect(0, 0, cCanvas.width, cCanvas.height);
 
+    // 2. Redraw the court so lines stay bright
     drawSquashCourt(cCtx);
 
+    // 3. Draw the SOLID "Head"
     cCtx.globalAlpha = 1.0;
     cCtx.fillStyle = color;
     cCtx.beginPath();
@@ -361,23 +356,16 @@ function drawCalibrationMarkers(ctx) {
 // Add this helper to ensure the court is always available
 function drawSquashCourt(ctx) {
     const w = 210, h = 320;
-    const courtPicker = document.getElementById("courtColor");
-    const color = courtPicker ? courtPicker.value : "rgb(255, 0, 0)";
+    // Use the color picker value if in edit mode, otherwise default yellow
+    const color = isEditing ? document.getElementById("courtColor").value : "rgb(255, 230, 0)";
     
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
-    ctx.strokeRect(0, 0, w, h);
+    ctx.strokeRect(0, 0, w, h); // Boundary
 
     const shortLineY = h * 0.55; 
-    ctx.beginPath(); 
-    ctx.moveTo(0, shortLineY); 
-    ctx.lineTo(w, shortLineY); 
-    ctx.stroke();
-
-    ctx.beginPath(); 
-    ctx.moveTo(w / 2, shortLineY); 
-    ctx.lineTo(w / 2, h); 
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, shortLineY); ctx.lineTo(w, shortLineY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(w / 2, shortLineY); ctx.lineTo(w / 2, h); ctx.stroke();
     
     const boxSize = w / 4; 
     ctx.strokeRect(0, shortLineY, boxSize, boxSize);
@@ -487,13 +475,16 @@ function saveRallyChanges() {
 function drawFrame(targetTime) {
     const canvas = document.getElementById("courtCanvas");
     const ctx = canvas.getContext("2d");
-    const trailToggle = document.getElementById("trailToggle");
-    const showTrail = trailToggle ? trailToggle.checked : false;
+    const showTrail = document.getElementById("trailToggle").checked;
     
-    const bgCol = document.getElementById("bgColor") ? document.getElementById("bgColor").value : "#ffffff";
+    // 1. GET THE BACKGROUND COLOR
+    const bgCol = document.getElementById("bgColor").value;
+
+    // 2. FILL THE ENTIRE CANVAS WITH THAT COLOR (Prevents black background)
     ctx.fillStyle = bgCol;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // 3. DRAW THE COURT
     drawSquashCourt(ctx);
 
     const p1Col = document.getElementById("p1Color").value;
@@ -515,6 +506,7 @@ function drawFrame(targetTime) {
             else if (showTrail) {
                 const fadeScale = 1 - (timeDiff / trailDuration);
                 ctx.globalAlpha = fadeScale * 0.4; 
+                
                 ctx.beginPath();
                 ctx.arc(point.x, point.y, 4, 0, Math.PI * 2);
                 ctx.fill();
@@ -529,9 +521,12 @@ async function exportRallyVideo() {
     const canvas = document.getElementById("courtCanvas");
     const exportBtn = document.getElementById("exportBtn");
     
+    // Determine the best supported format
     let type = 'video/webm';
     if (MediaRecorder.isTypeSupported('video/mp4')) {
         type = 'video/mp4';
+    } else if (MediaRecorder.isTypeSupported('video/ogg')) {
+        type = 'video/ogg';
     }
 
     const stream = canvas.captureStream(30);
@@ -544,6 +539,8 @@ async function exportRallyVideo() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
+        
+        // Match the extension to the type
         const extension = type.split('/')[1];
         a.download = `Ghost_Rally_${Date.now()}.${extension}`;
         a.click();
@@ -552,16 +549,18 @@ async function exportRallyVideo() {
         exportBtn.disabled = false;
     };
 
+    // 2. Setup Playback for recording
     exportBtn.innerText = "RECORDING...";
     exportBtn.disabled = true;
     
     currentTime = 0;
-    const totalDuration = rallyData.length > 0 ? rallyData[rallyData.length - 1].time : 0;
+    const totalDuration = rallyData[rallyData.length - 1].time;
     
     recorder.start();
 
+    // 3. High-speed render loop for export
     const exportInterval = setInterval(() => {
-        currentTime += 33; 
+        currentTime += 33; // ~30fps increment
         drawFrame(currentTime);
         
         if (currentTime >= totalDuration) {
