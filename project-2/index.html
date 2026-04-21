@@ -31,7 +31,7 @@
         </section>
 
         <section class="cta">
-            <button onclick="alert('Ghost tracks player efficiency using homography projection.')">ABOUT</button>
+            <button onclick="goToAbout()">INSTRUCTIONS</button>
             <button onclick="goToCamera()">START RECORDING</button>
             <button onclick="showPastRallies()">PAST RALLIES</button>
         </section>
@@ -53,38 +53,39 @@
         </div>
     </div>
 
-    <div id="edit" class="screen">
+   <div id="edit" class="screen">
         <div class="animation-container">
-            <h3 id="liveHeader">Live Movement</h3>
+            <h3 id="editorHeader">Live Movement</h3>
             
             <canvas id="courtCanvas" width="210" height="320"></canvas>
             
             <div id="editorControls" style="display:none; width: 100%; text-align: center;">
-                <input type="range" id="timeline" style="width:80%" min="0" value="0" oninput="manualSeek(this.value)">
+                <input type="range" id="timeline" min="0" value="0" oninput="manualSeek(this.value)" style="width: 80%;">
                 
                 <div class="editor-settings-row">
                     <div class="color-pickers">
-                        <input type="color" id="p1Color" title="Player 1" value="#00ffff">
-                        <input type="color" id="p2Color" title="Player 2" value="#ff00ff">
-                        <input type="color" id="courtColor" title="Court Lines" value="#ff0000">
-                        <input type="color" id="bgColor" title="Background" value="#ffffff">
+                        <input type="color" id="p1Color" title="Player 1" value="#00ffff" oninput="drawFrame(currentTime)">
+                        <input type="color" id="p2Color" title="Player 2" value="#ff00ff" oninput="drawFrame(currentTime)">
+                        <input type="color" id="courtColor" title="Court Lines" value="#ff0000" oninput="drawFrame(currentTime)">
+                        <input type="color" id="bgColor" title="Background" value="#ffffff" oninput="drawFrame(currentTime)">
                     </div>
-                    
+
                     <label class="trail-label">
                         <span>GHOST TRAIL</span>
-                        <input type="checkbox" id="trailToggle" onchange="drawFrame(currentTime)">
+                        <input type="checkbox" id="trailToggle" checked onchange="drawFrame(currentTime)">
                     </label>
-                </div>
-
-                <div class="button-group">
+                </div> 
+                
+                <div class="button-group" style="margin: 10px 0;">
                     <button onclick="togglePlayback()">PLAY / PAUSE</button>
                     <button onclick="saveRallyChanges()">SAVE CHANGES</button>
                     <button id="exportBtn" onclick="exportRallyVideo()">EXPORT VIDEO</button>
                 </div>
+
+                <button onclick="goHome()">BACK</button>
             </div>
 
             <button id="stopBtn" class="stop-btn" onclick="stopRecording()">STOP & SAVE</button>
-            <button id="backBtn" style="display:none" onclick="goHome()">BACK</button>
         </div>
     </div>
 
@@ -94,6 +95,37 @@
             <div id="rallyList" style="width: 80%; max-height: 50vh; overflow-y: auto; margin: 20px 0; display: flex; flex-direction: column; gap: 10px;">
                 </div>
             <button onclick="goHome()">BACK</button>
+        </div>
+    </div>
+
+    <div id="aboutModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" onclick="closeAbout()">&times;</span>
+
+            <div id="stepContainer">
+                <div class="step active">
+                    <img src="step1.png" alt="Step 1">
+                    <p>Instruction text for Step 1 goes here.</p>
+                </div>
+                <div class="step">
+                    <img src="step2.png" alt="Step 2">
+                    <p>Instruction text for Step 2 goes here.</p>
+                </div>
+                <div class="step">
+                    <img src="step3.png" alt="Step 3">
+                    <p>Instruction text for Step 3 goes here.</p>
+                </div>
+            </div>
+
+            <div class="modal-nav">
+                <button class="nav-arrow" onclick="moveStep(-1)">&#10094;</button>
+                <div id="dotContainer">
+                    <span class="dot active" onclick="setStep(0)"></span>
+                    <span class="dot" onclick="setStep(1)"></span>
+                    <span class="dot" onclick="setStep(2)"></span>
+                </div>
+                <button class="nav-arrow" onclick="moveStep(1)">&#10095;</button>
+            </div>
         </div>
     </div>
 

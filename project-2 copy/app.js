@@ -67,70 +67,76 @@ async function startCamera() {
         video.srcObject = fallback;
     }
 
-    async function detect() {
-        if (detector && video.readyState >= 2) {
-            const poses = await detector.estimatePoses(video);
-            
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawCalibrationMarkers(ctx);
 
-            if (poses.length > 0) {
-                poses.slice(0, 2).forEach((pose, i) => {
-                    // 1. INTELLIGENT GROUNDING: Get the best possible base point
-                    const leftAnkle = pose.keypoints[15];
-                    const rightAnkle = pose.keypoints[16];
-                    const leftHip = pose.keypoints[11];
-                    const rightHip = pose.keypoints[12];
+async function detect() {
+    const video = document.getElementById("cameraFeed");
+    const canvas = document.getElementById("overlayCanvas");
+    const ctx = canvas.getContext("2d");
 
-                    let targetX, targetY;
+    if (detector && video.readyState >= 2) {
+        const poses = await detector.estimatePoses(video);
+        
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        drawCalibrationMarkers(ctx);
 
-                    // If both ankles are visible, use the midpoint between them
-                    if (leftAnkle.score > 0.3 && rightAnkle.score > 0.3) {
-                        targetX = (leftAnkle.x + rightAnkle.x) / 2;
-                        targetY = (leftAnkle.y + rightAnkle.y) / 2;
-                    } 
-                    // Fallback: If only one ankle is visible, use that
-                    else if (leftAnkle.score > 0.3) {
-                        targetX = leftAnkle.x; targetY = leftAnkle.y;
-                    } else if (rightAnkle.score > 0.3) {
-                        targetX = rightAnkle.x; targetY = rightAnkle.y;
-                    }
-                    // Deep Fallback: Use the midpoint of the hips if ankles are blocked
-                    else if (leftHip.score > 0.3 && rightHip.score > 0.3) {
-                        targetX = (leftHip.x + rightHip.x) / 2;
-                        targetY = (leftHip.y + rightHip.y) / 2 + 50; // Offset downward
-                    }
-
-                    if (targetX && targetY) {
-                        // 2. PHYSICS SMOOTHING (LERP)
-                        if (!smoothedPos[i]) {
-                            smoothedPos[i] = { x: targetX, y: targetY };
-                        } else {
-                            smoothedPos[i].x += (targetX - smoothedPos[i].x) * SMOOTHING_FACTOR;
-                            smoothedPos[i].y += (targetY - smoothedPos[i].y) * SMOOTHING_FACTOR;
-                        }
-
-                        const color = i === 0 ? "#00ffff" : "#ff00ff";
-                        
-                        // Draw smoothed feedback on camera feed
-                        ctx.fillStyle = color;
-                        ctx.shadowBlur = 10;
-                        ctx.shadowColor = color;
-                        ctx.beginPath(); 
-                        ctx.arc(smoothedPos[i].x, smoothedPos[i].y, 8, 0, Math.PI*2); 
-                        ctx.fill();
-                        ctx.shadowBlur = 0;
-
-                        if (isRecording && homographyMatrix) {
-                            const courtPos = mapToCourt(smoothedPos[i].x, smoothedPos[i].y);
-                            recordData(`P${i+1}`, courtPos, color);
-                        }
-                    }
-                });
-            }
+        // Always draw the court/background on the 2D canvas during recording
+        if (isRecording) {
+            recordData(null, null, null);
         }
-        requestAnimationFrame(detect);
+
+        if (poses.length > 0) {
+            poses.slice(0, 2).forEach((pose, i) => {
+                const leftAnkle = pose.keypoints[15];
+                const rightAnkle = pose.keypoints[16];
+                const leftHip = pose.keypoints[11];
+                const rightHip = pose.keypoints[12];
+
+                let targetX, targetY;
+
+                if (leftAnkle.score > 0.3 && rightAnkle.score > 0.3) {
+                    targetX = (leftAnkle.x + rightAnkle.x) / 2;
+                    targetY = (leftAnkle.y + rightAnkle.y) / 2;
+                } else if (leftAnkle.score > 0.3) {
+                    targetX = leftAnkle.x; targetY = leftAnkle.y;
+                } else if (rightAnkle.score > 0.3) {
+                    targetX = rightAnkle.x; targetY = rightAnkle.y;
+                } else if (leftHip.score > 0.3 && rightHip.score > 0.3) {
+                    targetX = (leftHip.x + rightHip.x) / 2;
+                    targetY = (leftHip.y + rightHip.y) / 2 + 50; 
+                }
+
+                if (targetX && targetY) {
+                    if (!smoothedPos[i]) {
+                        smoothedPos[i] = { x: targetX, y: targetY };
+                    } else {
+                        smoothedPos[i].x += (targetX - smoothedPos[i].x) * SMOOTHING_FACTOR;
+                        smoothedPos[i].y += (targetY - smoothedPos[i].y) * SMOOTHING_FACTOR;
+                    }
+
+                    // Pull colors from pickers or use neon defaults
+                    let p1Val = document.getElementById("p1Color")?.value || "#00ffff";
+                    let p2Val = document.getElementById("p2Color")?.value || "#ff00ff";
+                    const color = (i === 0) ? p1Val : p2Val;
+                    
+                    // Draw on Camera Feed
+                    ctx.fillStyle = color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = color;
+                    ctx.beginPath(); 
+                    ctx.arc(smoothedPos[i].x, smoothedPos[i].y, 8, 0, Math.PI*2); 
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    if (isRecording && homographyMatrix) {
+                        const courtPos = mapToCourt(smoothedPos[i].x, smoothedPos[i].y);
+                        recordData(`P${i+1}`, courtPos, color);
+                    }
+                }
+            });
+        }
     }
+    requestAnimationFrame(detect);
+}
 
     video.onloadedmetadata = () => {
         canvas.width = video.videoWidth;
