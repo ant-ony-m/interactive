@@ -88,13 +88,14 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
 /* Group for the small color squares */
 .color-pickers {
     display: flex;
+    border: gray; 
+    border-radius: 50%
     gap: 8px;
 }
 
 .color-pickers input[type="color"] {
     width: 35px;
     height: 35px;
-    border: none;
     background: none;
     cursor: pointer;
 }
