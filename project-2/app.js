@@ -240,24 +240,57 @@ function showPastRallies() {
 
     rallies.forEach((r, i) => {
         const div = document.createElement("div");
-        div.style = "display: flex; gap: 10px; margin-bottom: 10px;";
+        div.style = "display: flex; gap: 10px; margin-bottom: 10px; width: 100%; align-items: stretch;";
         
-        // Create the play button
+        // 1. Play Button (Main Button)
         const playBtn = document.createElement("button");
-        playBtn.style.flex = "1";
-        playBtn.innerText = r.name;
-        playBtn.onclick = () => playbackRallyByIndex(i); // Use index helper
+        playBtn.style = "flex: 1; text-align: left; align-items: center; padding: 15px;";
+        playBtn.innerHTML = `<br> <strong style="color: #ff0000;">${r.name}</strong> <br> <small style="color: #000000;">${r.date}</small>`;
+        playBtn.onclick = () => playbackRallyByIndex(i);
 
-        // Create the delete button
+        // 2. Rename Button (Pencil)
+        const renameBtn = document.createElement("button");
+        renameBtn.innerHTML = "✎";
+        // Matching your Ghost style: Transparent with a border
+        renameBtn.style = "background: transparent; border: 1px solid #ff0000; color: #ff0000; height: 45px; width: 45px; display: flex; justify-content: center; align-items: center; padding: 0;";
+        renameBtn.onclick = (e) => {
+            e.stopPropagation();
+            renameRally(i);
+        };
+
+        // 3. Delete Button (X)
         const delBtn = document.createElement("button");
-        delBtn.style.color = "red";
-        delBtn.innerText = "X";
-        delBtn.onclick = () => deleteRally(i);
+        delBtn.innerHTML = "X";
+        delBtn.style = "background: transparent; border: 1px solid #ff0000; color: #ff0000; height: 45px; width: 45px; display: flex; justify-content: center; align-items: center; padding: 0;";
+        delBtn.onclick = (e) => {
+            e.stopPropagation();
+            deleteRally(i);
+        };
 
         div.appendChild(playBtn);
+        div.appendChild(renameBtn);
         div.appendChild(delBtn);
         container.appendChild(div);
     });
+}
+
+function renameRally(index) {
+    let rallies = JSON.parse(localStorage.getItem("ghost_rallies") || "[]");
+    const oldName = rallies[index].name;
+    const newName = prompt("Rename rally:", oldName);
+
+    if (newName && newName.trim() !== "" && newName !== oldName) {
+        rallies[index].name = newName.trim();
+        localStorage.setItem("ghost_rallies", JSON.stringify(rallies));
+        
+        // Refresh the list and update the editor header if it's currently open
+        showPastRallies();
+        
+        const header = document.getElementById("editorHeader");
+        if (isEditing && activeRallyId === rallies[index].id && header) {
+            header.innerText = newName;
+        }
+    }
 }
 
 // Helper to prevent JSON stringify issues in HTML attributes

@@ -386,6 +386,25 @@ button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
     100% { opacity: 0; transform: translateY(55px) scale3d(0.5, 0.5, 0.5); }
 }
 
+.rally-item button {
+    border-radius: 4px;
+    font-family: 'Lexend', sans-serif;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Make sure the text on the main button doesn't overflow */
+.rally-item button span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+    max-width: 150px;
+}
+
 /* This applies to the Camera UI and the Edit/Recording screen UI */
 @media screen and (orientation: landscape) and (max-height: 500px) {
     /* 1. Make the control boxes smaller and wider to fit the short height */
